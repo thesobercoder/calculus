@@ -18,10 +18,12 @@ This is a CLI chatbot built with **EffectTS** and **Bun**. The application follo
 
 ### Core Structure
 
-- **Entry Point**: `src/agent.ts` - Main application with chat loop and console UI
+- **Entry Point**: `src/index.ts` - Main application entry point
+- **Chat Logic**: `src/chat.ts` - Chat functionality and conversation management
+- **Client Setup**: `src/client.ts` - OpenAI client configuration and setup
+- **UI Components**: `src/ui.ts` - Console UI components and formatting
 - **Runtime**: Uses BunRuntime for Effect program execution
 - **AI Integration**: Uses `@effect/ai` with OpenAI-compatible endpoints via `@effect/ai-openai`
-- **CLI**: Built on `@effect/cli` for user input handling
 
 ### Key Patterns
 
