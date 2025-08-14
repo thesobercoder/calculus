@@ -17,5 +17,5 @@ main.pipe(
   Effect.provide(ClientLayer),
   Effect.provide(FetchHttpClient.layer),
   Effect.provide(BunContext.layer),
-  BunRuntime.runMain
+  BunRuntime.runMain,
 );

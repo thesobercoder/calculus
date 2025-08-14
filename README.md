@@ -67,6 +67,7 @@ bun run start
 - **Entry Point**: `src/index.ts` - Main application entry point
 - **Chat Logic**: `src/chat.ts` - Chat functionality and conversation management
 - **Client Setup**: `src/client.ts` - OpenAI client configuration and setup
+- **AI Tools**: `src/tools.ts` - AI toolkit with custom tools for enhanced functionality
 - **UI Components**: `src/ui.ts` - Console UI components and formatting
 - **Runtime**: Uses BunRuntime for Effect program execution
 - **AI Integration**: Built on `@effect/ai` with OpenAI-compatible endpoints
@@ -86,6 +87,26 @@ The application requires these environment variables:
 - `OPENAI_API_KEY` - API authentication key
 
 **Default Model**: `google/gemini-2.5-flash` with temperature `0.5`
+
+## AI Tools
+
+The application includes a custom AI toolkit (`src/tools.ts`) that extends the chatbot's capabilities:
+
+### Available Tools
+
+- **getCurrentDate**: Retrieves the current date and time in localized format
+  - Description: "Get the current date and time"
+  - Returns: Current datetime as a formatted string
+
+### Toolkit Architecture
+
+The AI toolkit is built using `@effect/ai` abstractions:
+
+- **AiTool**: Individual tool definitions with schemas and descriptions
+- **AiToolkit**: Collection of tools that can be used by the AI model
+- **toolKitLayer**: Effect layer that provides tool implementations
+
+This allows the AI model to call specific functions during conversations, enabling more dynamic and contextual responses.
 
 ## Dependencies
 
@@ -114,6 +135,7 @@ root/
 │   ├── chat.ts           # Chat functionality and conversation logic
 │   ├── client.ts         # OpenAI client configuration and setup
 │   ├── index.ts          # Main application entry point
+│   ├── tools.ts          # AI toolkit with custom tools
 │   └── ui.ts             # Console UI components and formatting
 ├── dist/                 # Compiled output (generated)
 ├── node_modules/         # Dependencies (generated)
