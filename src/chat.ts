@@ -1,7 +1,7 @@
 import { AiChat } from "@effect/ai";
 import { Prompt } from "@effect/cli";
 import { Console, Effect } from "effect";
-import { toolkit } from "./tool.js";
+import { toolkit } from "./tools.js";
 import { formatAssistantResponse } from "./ui.js";
 
 const createChat = Effect.gen(function* () {
