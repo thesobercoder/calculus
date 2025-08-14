@@ -13,6 +13,15 @@ const createChat = Effect.gen(function* () {
       `User's current location is Kolkata, West Bengal, India`,
       `Always respond with keeping the current locale in mind`,
       "You have access to tools. Use them intelligently to answer the user's questions",
+      "",
+      "Todo List Display Format:",
+      "Always display the current todo list in this exact format when todos exist:",
+      "⏺ [Batch Title/Description]",
+      "  ⎿  ☐ [todo content] (for pending/in_progress status)",
+      "     ☒ [todo content] (for completed status)",
+      "",
+      "Use ☐ for pending and in_progress todos, ☒ for completed todos.",
+      "If no todos exist, don't show any todo list.",
     ].join("\n"),
   });
 });
@@ -40,6 +49,7 @@ export const runChatLoop = Effect.gen(function* () {
     });
 
     if (response.toolCalls.length > 0) {
+      // Tool calls were made, generate follow-up response
       response = yield* chat.generateText({
         prompt: [],
         toolkit: toolkit,

@@ -68,6 +68,7 @@ bun run start
 - **Chat Logic**: `src/chat.ts` - Chat functionality and conversation management
 - **Client Setup**: `src/client.ts` - OpenAI client configuration and setup
 - **AI Tools**: `src/tools.ts` - AI toolkit with custom tools for enhanced functionality
+- **Data Schemas**: `src/schemas.ts` - Schema.Class definitions for application data structures
 - **UI Components**: `src/ui.ts` - Console UI components and formatting
 - **Runtime**: Uses BunRuntime for Effect program execution
 - **AI Integration**: Built on `@effect/ai` with OpenAI-compatible endpoints
@@ -97,6 +98,14 @@ The application includes a custom AI toolkit (`src/tools.ts`) that extends the c
 - **getCurrentDate**: Retrieves the current date and time in localized format
   - Description: "Get the current date and time"
   - Returns: Current datetime as a formatted string
+
+- **writeTodo**: Manage a batch of todos
+  - Description: "Manage a batch of todos. Provide an array of todo items to replace the entire batch. IDs are auto-generated for new items or use existing ID to update"
+  - Parameters: `todos` (array of todo items with `content`, `status`, `id` (optional))
+  - Status values: `"pending"`, `"in_progress"`, `"completed"`
+  - ID Generation: Automatically generates unique IDs for new todos; include existing ID to update specific todos
+  - Returns: Current batch of todos with generated IDs and optional message
+  - Auto-clears: When all todos in a batch are marked `"completed"`, the entire batch is automatically cleared
 
 ### Toolkit Architecture
 
@@ -135,7 +144,8 @@ root/
 │   ├── chat.ts           # Chat functionality and conversation logic
 │   ├── client.ts         # OpenAI client configuration and setup
 │   ├── index.ts          # Main application entry point
-│   ├── tools.ts          # AI toolkit with custom tools
+│   ├── schemas.ts        # Schema.Class definitions for application data structures
+│   ├── tools.ts          # AI toolkit with custom tools and implementations
 │   └── ui.ts             # Console UI components and formatting
 ├── dist/                 # Compiled output (generated)
 ├── node_modules/         # Dependencies (generated)

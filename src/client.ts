@@ -21,7 +21,7 @@ export const ClientLayer = OpenAiClient.layerConfig({
 });
 
 export const ModelLayer = OpenAiLanguageModel.layer({
-  model: "google/gemini-2.5-flash",
+  model: "moonshotai/kimi-k2",
   config: {
     temperature: 0.5,
   },
