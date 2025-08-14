@@ -16,17 +16,17 @@ function boxLine(content: string): string {
 
 export const showWelcomeBox = Effect.gen(function* () {
   yield* Console.info(
-    "\x1b[38;5;244m╭" + "─".repeat(BOX_WIDTH - 2) + "╮\x1b[0m",
+    "\x1b[38;5;244m╭" + "─".repeat(BOX_WIDTH - 2) + "╮\x1b[0m"
   );
   yield* Console.info(
-    boxLine("  \x1b[38;5;208m*\x1b[0m \x1b[1mWelcome to Effect Code!\x1b[0m"),
+    boxLine("  \x1b[38;5;208m*\x1b[0m \x1b[1mWelcome to Monadic!\x1b[0m")
   );
   yield* Console.info(boxLine(""));
   yield* Console.info(boxLine("  \x1b[3mtype 'exit' or 'quit' to exit\x1b[0m"));
   yield* Console.info(boxLine(""));
   yield* Console.info(boxLine(`  cwd: \x1b[38;5;244m${process.cwd()}\x1b[0m`));
   yield* Console.info(
-    "\x1b[38;5;244m╰" + "─".repeat(BOX_WIDTH - 2) + "╯\x1b[0m",
+    "\x1b[38;5;244m╰" + "─".repeat(BOX_WIDTH - 2) + "╯\x1b[0m"
   );
   yield* Console.log("");
 });

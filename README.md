@@ -1,4 +1,4 @@
-# Effect Claude
+# Monadic
 
 An intelligent CLI chatbot built with **EffectTS** and **Bun**, featuring functional programming patterns and type-safe AI integration.
 
@@ -109,7 +109,7 @@ The application requires these environment variables:
 ## Project Structure
 
 ```
-effect-claude/
+root/
 ├── src/
 │   ├── chat.ts           # Chat functionality and conversation logic
 │   ├── client.ts         # OpenAI client configuration and setup

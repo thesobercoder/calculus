@@ -1,5 +1,5 @@
 {
-  "name": "effect-claude",
+  "name": "monadic",
   "dependencies": {
     "@effect/ai": "latest",
     "@effect/ai-openai": "latest",
