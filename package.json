@@ -1,0 +1,36 @@
+{
+  "name": "effect-app",
+  "dependencies": {
+    "@effect/ai": "latest",
+    "@effect/ai-openai": "latest",
+    "@effect/cli": "latest",
+    "@effect/platform": "latest",
+    "@effect/platform-bun": "latest",
+    "effect": "latest"
+  },
+  "devDependencies": {
+    "@effect/eslint-plugin": "latest",
+    "@effect/language-service": "latest",
+    "@eslint/js": "latest",
+    "@types/bun": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "syncpack": "latest",
+    "typescript-eslint": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "latest"
+  },
+  "private": true,
+  "scripts": {
+    "build": "bun build src/agent.ts --outdir dist --target bun --minify",
+    "dev": "bun run src/agent.ts",
+    "format": "syncpack format && prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "start": "bun run build && bun run dist/agent.js",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit --skipLibCheck --project ."
+  },
+  "type": "module"
+}
