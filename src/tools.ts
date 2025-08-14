@@ -1,16 +1,23 @@
 import { AiTool, AiToolkit } from "@effect/ai";
 import { Effect, Schema } from "effect";
 import { randomUUID } from "crypto";
-import { TodoItemInput, TodoItemOutput } from "./schemas.js";
+import { TodoItem } from "./schemas.js";
 
 // In-memory todo batch storage
-let currentBatch: TodoItemOutput[] = [];
+let currentBatch: TodoItem[] = [];
 
 const getCurrentDateTool = AiTool.make("getCurrentDate", {
   description: "Get the current date and time",
   success: Schema.Struct({
     datetime: Schema.String,
   }),
+});
+
+// Input schema for the tool (allows optional ID)
+const TodoItemInput = Schema.Struct({
+  content: Schema.String,
+  status: Schema.Literal("pending", "in_progress", "completed"),
+  id: Schema.optional(Schema.String),
 });
 
 const writeTodoTool = AiTool.make("writeTodo", {
@@ -32,7 +39,7 @@ Always reference the returned todo IDs in your response to confirm successful cr
     todos: Schema.Array(TodoItemInput),
   },
   success: Schema.Struct({
-    todos: Schema.Array(TodoItemOutput),
+    todos: Schema.Array(TodoItem),
     message: Schema.optional(Schema.String),
   }),
 });
@@ -45,14 +52,14 @@ export const toolKitLayer = toolkit.toLayer({
   },
   writeTodo: ({ todos }) => {
     // Process todos and generate IDs for new items
-    const processedTodos: TodoItemOutput[] = todos.map((todo) => {
+    const processedTodos: TodoItem[] = todos.map((todo) => {
       if (todo.id) {
         // Existing todo with ID - keep the ID
-        return TodoItemOutput.create(todo.content, todo.status, todo.id);
+        return TodoItem.create(todo.content, todo.status, todo.id);
       } else {
         // New todo without ID - generate UUID
         const newId = randomUUID();
-        return TodoItemOutput.create(todo.content, todo.status, newId);
+        return TodoItem.create(todo.content, todo.status, newId);
       }
     });
 
