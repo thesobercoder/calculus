@@ -3,39 +3,74 @@ import { Effect, Schema } from "effect";
 import { TodoItem } from "./schemas.js";
 
 const getCurrentDateTool = AiTool.make("getCurrentDate", {
-  description: "Get the current date and time",
+  description:
+    "Get the current date and time in the user's local timezone. Use this tool when you need to know what time/date it is right now for scheduling, logging, or time-based operations.",
   success: Schema.Struct({
-    datetime: Schema.String,
+    datetime: Schema.String.annotations({
+      description:
+        "The current date and time formatted as a localized string (e.g., '12/25/2024, 3:30:45 PM')",
+    }),
   }),
 });
 
 const writeTodoTool = AiTool.make("writeTodo", {
-  description: `Manage a batch of todos. This tool replaces the entire todo batch with the provided array.
+  description: `Manage a batch of todos for task planning and progress tracking. This tool replaces the entire todo batch with the provided array.
 
-Usage:
+🎯 WHEN TO USE:
+- User requests implementing a feature
+- Debugging or fixing issues
+- Refactoring code
+- Any multi-step task requiring planning
+- Breaking down complex work into manageable steps
+
+📝 USAGE PATTERNS:
 - Create new todos: Provide objects with 'content' and 'status' (omit 'id')
 - Update existing todos: Include the existing 'id' along with 'content' and 'status'
-- Status values: "pending", "in_progress", "completed"
+- Status progression: pending → in_progress → completed
 
-Behavior:
+⚡ BEHAVIOR:
 - Automatically generates unique IDs for new todos (when 'id' is omitted)
 - Preserves existing IDs when updating todos (when 'id' is provided)
 - Auto-clears: When ALL todos have status "completed", the entire batch is automatically cleared
 - Returns: Complete batch with all generated IDs and optional status message
 
-Always reference the returned todo IDs in your response to confirm successful creation/updates.`,
+🔍 The UI automatically displays the todo list - do NOT format todos in your response!`,
   parameters: {
     todos: Schema.Array(
       Schema.Struct({
-        content: Schema.String,
-        status: Schema.Literal("pending", "in_progress", "completed"),
-        id: Schema.optional(Schema.String),
+        content: Schema.String.annotations({
+          description:
+            "The task description - be specific and actionable (e.g., 'Create user authentication middleware' not 'Fix auth')",
+        }),
+        status: Schema.Literal(
+          "pending",
+          "in_progress",
+          "completed",
+        ).annotations({
+          description:
+            "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
+        }),
+        id: Schema.optional(Schema.String).annotations({
+          description:
+            "Unique identifier for existing todos. Omit for new todos - system will generate UUID automatically",
+        }),
+      }).annotations({
+        description:
+          "A single todo item with content, status, and optional ID for updates",
       }),
-    ),
+    ).annotations({
+      description:
+        "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
+    }),
   },
   success: Schema.Struct({
-    todos: Schema.Array(TodoItem),
-    message: Schema.optional(Schema.String),
+    todos: Schema.Array(TodoItem).annotations({
+      description: "The complete updated todo batch with all generated IDs",
+    }),
+    message: Schema.optional(Schema.String).annotations({
+      description:
+        "Optional status message (e.g., 'All todos completed. Batch cleared.')",
+    }),
   }),
 });
 

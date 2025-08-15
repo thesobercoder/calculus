@@ -64,7 +64,7 @@ export const runChatLoop = Effect.gen(function* () {
     if (response.toolCalls.length > 0) {
       // Check if any tool calls were todo-related and if we have results
       const hasTodoCall = response.toolCalls.some(
-        (call) => call.name === "writeTodo"
+        (call) => call.name === "writeTodo",
       );
 
       // After getting results, check for todo call results
