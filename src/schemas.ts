@@ -46,17 +46,16 @@ export class TodoItem extends Schema.Class<TodoItem>("TodoItem")({
     const allCompleted = TodoItem.currentBatch.every((todo) =>
       todo.isCompleted(),
     );
-    let message: string | undefined;
+    // Store the current batch before potentially clearing it
+    const todosToReturn = [...TodoItem.currentBatch];
 
     if (allCompleted && TodoItem.currentBatch.length > 0) {
       // Clear the batch if all todos are completed
       TodoItem.currentBatch = [];
-      message = "All todos completed. Batch cleared.";
     }
 
     return {
-      todos: TodoItem.currentBatch,
-      ...(message && { message }),
+      todos: todosToReturn,
     };
   }
 

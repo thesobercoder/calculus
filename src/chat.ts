@@ -1,7 +1,6 @@
 import { AiChat } from "@effect/ai";
 import { Prompt } from "@effect/cli";
 import { Console, Effect } from "effect";
-import { TodoItem } from "./schemas.js";
 import { toolkit } from "./tools.js";
 import { displayTodoList, formatAssistantResponse } from "./ui.js";
 
@@ -61,14 +60,10 @@ export const runChatLoop = Effect.gen(function* () {
       toolkit: toolkit,
     });
 
+    // If tools were called, generate follow-up response with results
     if (response.toolCalls.length > 0) {
-      // Check if any tool calls were todo-related and if we have results
-      const hasTodoCall = response.toolCalls.some(
-        (call) => call.name === "writeTodo",
-      );
-
-      // After getting results, check for todo call results
-      if (hasTodoCall && "results" in response) {
+      // Check if this response has tool call results
+      if ("results" in response) {
         // Look for writeTodo results in the response results map
         for (const [, { name, result }] of response.results) {
           if (
@@ -77,16 +72,13 @@ export const runChatLoop = Effect.gen(function* () {
             typeof result === "object" &&
             "todos" in result
           ) {
-            const todoResult = result as {
-              todos: readonly TodoItem[];
-              message?: string;
-            };
+            const todoResult = result;
             yield* displayTodoList(todoResult.todos, todoResult.message);
           }
         }
       }
 
-      // Tool calls were made, generate follow-up response to get results
+      // Generate a follow-up response with the results
       response = yield* chat.generateText({
         prompt: [],
         toolkit: toolkit,

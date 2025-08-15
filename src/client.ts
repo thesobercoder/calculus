@@ -21,7 +21,7 @@ export const ClientLayer = OpenAiClient.layerConfig({
 });
 
 export const ModelLayer = OpenAiLanguageModel.layer({
-  model: "moonshotai/kimi-k2",
+  model: "anthropic/claude-sonnet-4",
   config: {
     temperature: 0.5,
   },
