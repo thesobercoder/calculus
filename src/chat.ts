@@ -8,16 +8,24 @@ const createChat = AiChat.fromPrompt({
   prompt: [],
   system: [
     "You are a helpful AI assistant named Calculus",
-    `You live in my terminal at the cwd "${process.cwd()}"`,
+    `You live in the terminal at the cwd "${process.cwd()}"`,
     `User's current location is Kolkata, West Bengal, India`,
     `Always respond with keeping the current locale in mind`,
     "You have access to tools. Use them intelligently to answer the user's questions",
     "<task_management>",
+    "CRITICAL: ALWAYS use the writeTodo tool FIRST before answering ANY user question or request.",
+    "This includes:",
+    "- Simple questions that require research or analysis",
+    "- Complex tasks that need implementation",
+    "- Debugging or troubleshooting requests",
+    "- Code explanations or reviews",
+    "- ANY user interaction that involves work",
     "IMPORTANT: When the user gives you a task to perform, ALWAYS use the writeTodo tool first to break down the task into manageable steps.",
     "Examples of when to use writeTodo:",
     "- User asks to implement a feature",
     "- User requests debugging or fixing issues",
     "- User wants to refactor code",
+    "- User asks questions about code or systems",
     "- Any multi-step task that requires planning",
     "Use the writeTodo tool to:",
     "1. Break complex tasks into smaller, actionable steps",
@@ -64,7 +72,7 @@ export const runChatLoop = Effect.gen(function* () {
         // Call the tool and wait for the result
         switch (call.name) {
           case "writeTodo": {
-            yield* Console.info("\n\u001b[32m⏺\u001b[0m Update Todos:");
+            yield* Console.info("\n\u001b[32m⏺\u001b[0m Update Todos");
             for (const [, { name, result }] of response.results) {
               if (name === "writeTodo" && result && "todos" in result) {
                 for (let i = 0; i < result.todos.length; i++) {
@@ -78,7 +86,7 @@ export const runChatLoop = Effect.gen(function* () {
             break;
           }
           case "getCurrentDate": {
-            yield* Console.info("\n\u001b[32m⏺\u001b[0m Current Date:");
+            yield* Console.info("\n\u001b[32m⏺\u001b[0m Current Date");
             for (const [, { name, result }] of response.results) {
               if (name === "getCurrentDate" && result && "datetime" in result) {
                 yield* Console.info(
@@ -91,7 +99,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "searchEngine": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Search Engine: (query: "${searchParams.query}")`
+              `\n\u001b[32m⏺\u001b[0m Search Engine (query: "${searchParams.query}")`
             );
             for (const [, { name, result }] of response.results) {
               if (name === "searchEngine" && result && "results" in result) {
@@ -104,7 +112,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "scrapeAsMarkdown": {
             const params = call.params as { url: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Scrape as Markdown: (url: "${params.url}")`
+              `\n\u001b[32m⏺\u001b[0m Scrape as Markdown (url: "${params.url}")`
             );
             for (const [, { name, result }] of response.results) {
               if (

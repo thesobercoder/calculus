@@ -1,5 +1,5 @@
 {
-  "name": "monadic",
+  "name": "calculus",
   "dependencies": {
     "@effect/ai": "latest",
     "@effect/ai-openai": "latest",
