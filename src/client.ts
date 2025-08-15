@@ -12,16 +12,16 @@ export const ClientLayer = OpenAiClient.layerConfig({
         request.pipe(
           HttpClientRequest.setHeader(
             "HTTP-Referer",
-            "https://thesobercoder.in",
+            "https://thesobercoder.in"
           ),
-          HttpClientRequest.setHeader("X-Title", "Calculus"),
-        ),
-      ),
+          HttpClientRequest.setHeader("X-Title", "Calculus")
+        )
+      )
     ),
 });
 
 export const ModelLayer = OpenAiLanguageModel.layer({
-  model: "moonshotai/kimi-k2",
+  model: "anthropic/claude-opus-4.1",
   config: {
     temperature: 0.5,
   },

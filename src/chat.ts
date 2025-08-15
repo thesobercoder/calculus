@@ -65,28 +65,53 @@ export const runChatLoop = Effect.gen(function* () {
         switch (call.name) {
           case "writeTodo": {
             yield* Console.info("\n\u001b[32m⏺\u001b[0m Update Todos:");
-            yield* Console.info("  ⎿  ");
+            for (const [, { name, result }] of response.results) {
+              if (name === "writeTodo" && result && "todos" in result) {
+                for (let i = 0; i < result.todos.length; i++) {
+                  const todo = result.todos[i]!;
+                  const status = todo.status === "completed" ? "☒" : "☐";
+                  const prefix = i === 0 ? "  ⎿  " : "     ";
+                  yield* Console.info(`${prefix}${status} ${todo.content}`);
+                }
+              }
+            }
             break;
           }
           case "getCurrentDate": {
             yield* Console.info("\n\u001b[32m⏺\u001b[0m Current Date:");
-            yield* Console.info("  ⎿  ");
+            for (const [, { name, result }] of response.results) {
+              if (name === "getCurrentDate" && result && "datetime" in result) {
+                yield* Console.info(`  ⎿  ${result.datetime}`);
+              }
+            }
             break;
           }
           case "searchEngine": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Search Engine: (query: "${searchParams.query}")`,
+              `\n\u001b[32m⏺\u001b[0m Search Engine: (query: "${searchParams.query}")`
             );
-            yield* Console.info("  ⎿  ");
+            for (const [, { name, result }] of response.results) {
+              if (name === "searchEngine" && result && "results" in result) {
+                yield* Console.info(`  ⎿  ${result.results.substring(0, 50)}`);
+              }
+            }
             break;
           }
           case "scrapeAsMarkdown": {
             const params = call.params as { url: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Scrape as Markdown: (url: "${params.url}")`,
+              `\n\u001b[32m⏺\u001b[0m Scrape as Markdown: (url: "${params.url}")`
             );
-            yield* Console.info("  ⎿  ");
+            for (const [, { name, result }] of response.results) {
+              if (
+                name === "scrapeAsMarkdown" &&
+                result &&
+                "content" in result
+              ) {
+                yield* Console.info(`  ⎿  ${result.content.substring(0, 50)}`);
+              }
+            }
             break;
           }
         }
