@@ -60,30 +60,37 @@ export const runChatLoop = Effect.gen(function* () {
 
     // Keep calling tools until the LLM stops requesting them (agentic loop)
     while (response.toolCalls.length > 0) {
-      // Display which tools were called (excluding writeTodo)
-      // const nonTodoToolCalls = response.toolCalls.filter(
-      //   (call) => call.name !== "writeTodo"
-      // );
-      // const todoToolCalls = response.toolCalls.filter(
-      //   (call) => call.name === "writeTodo"
-      // );
-      // if (nonTodoToolCalls.length > 0) {
-      //   yield* displayToolCalls(nonTodoToolCalls);
-      // } else if (todoToolCalls.length > 0 && "results" in response) {
-      //   // Check if this response has todo tool call results
-      //   // Look for writeTodo results in the response results map
-      //   for (const [, { name, result }] of response.results) {
-      //     if (
-      //       name === "writeTodo" &&
-      //       result &&
-      //       typeof result === "object" &&
-      //       "todos" in result
-      //     ) {
-      //       const todoResult = result;
-      //       yield* displayTodoList(todoResult.todos);
-      //     }
-      //   }
-      // }
+      for (const call of response.toolCalls) {
+        // Call the tool and wait for the result
+        switch (call.name) {
+          case "writeTodo": {
+            yield* Console.info("\n\u001b[32m⏺\u001b[0m Update Todos:");
+            yield* Console.info("  ⎿  ");
+            break;
+          }
+          case "getCurrentDate": {
+            yield* Console.info("\n\u001b[32m⏺\u001b[0m Current Date:");
+            yield* Console.info("  ⎿  ");
+            break;
+          }
+          case "searchEngine": {
+            const searchParams = call.params as { query: string };
+            yield* Console.info(
+              `\n\u001b[32m⏺\u001b[0m Search Engine: (query: "${searchParams.query}")`,
+            );
+            yield* Console.info("  ⎿  ");
+            break;
+          }
+          case "scrapeAsMarkdown": {
+            const params = call.params as { url: string };
+            yield* Console.info(
+              `\n\u001b[32m⏺\u001b[0m Scrape as Markdown: (url: "${params.url}")`,
+            );
+            yield* Console.info("  ⎿  ");
+            break;
+          }
+        }
+      }
 
       response = yield* chat.generateText({
         prompt: [],

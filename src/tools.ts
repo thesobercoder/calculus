@@ -104,28 +104,29 @@ const searchUrl = (engine: string, query: string, cursor?: string): string => {
 };
 
 const searchEngineTool = AiTool.make("searchEngine", {
-  description: `Search the web using Google, Bing, or Yandex with advanced scraping capabilities.
+  description: `Search the web using Google, Bing, or Yandex to get search result links.
 
-🔍 **PURPOSE**: Get real-time search results from major search engines
+🔍 **PURPOSE**: Get search result links from major search engines (NOT full page content)
 
 🌐 **SUPPORTED ENGINES**:
 • **Google** (default) - Most comprehensive results
 • **Bing** - Microsoft's search engine with unique results
 • **Yandex** - Russian search engine, good for international content
 
-💪 **ADVANCED FEATURES**:
-• Bypasses bot detection and CAPTCHAs automatically
-• Returns clean, structured markdown format
-• Pagination support with cursor parameter
-• Real-time results (not cached)
-
-📋 **OUTPUT FORMAT**: Structured markdown with:
+📋 **OUTPUT FORMAT**: Returns search results with:
 • Page titles as headers
-• Clean URLs for each result
-• Descriptive snippets and meta information
-• Easy-to-parse format for further processing
+• URLs for each result
+• Short descriptive snippets from search results
+• Structured markdown format
 
-🎯 **BEST FOR**: Research, competitive analysis, content discovery, fact-checking, and gathering current information from the web.`,
+⚠️ **IMPORTANT**: This tool only provides search result links and snippets. To read the actual content of web pages, you MUST use the 'scrapeAsMarkdown' tool with the URLs returned by this search.
+
+🔄 **TYPICAL WORKFLOW**:
+1. Use searchEngine to find relevant pages
+2. Use scrapeAsMarkdown to read the actual content from the URLs
+3. Analyze the scraped content to answer user questions
+
+🎯 **BEST FOR**: Finding relevant web pages for research, getting current search results, discovering content sources.`,
   parameters: {
     query: Schema.String.annotations({
       description: "The search query to execute",
