@@ -14,7 +14,7 @@ export const ClientLayer = OpenAiClient.layerConfig({
             "HTTP-Referer",
             "https://thesobercoder.in",
           ),
-          HttpClientRequest.setHeader("X-Title", "Memory Manager"),
+          HttpClientRequest.setHeader("X-Title", "Calculus"),
         ),
       ),
     ),
