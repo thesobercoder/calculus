@@ -1,6 +1,21 @@
 import { AiTool, AiToolkit } from "@effect/ai";
-import { Effect, Schema } from "effect";
-import { TodoItem } from "./schemas.js";
+import { Effect, Layer, Schema } from "effect";
+import { TodoItem, TodoStore } from "./schemas.js";
+
+// Centralized handler dependencies
+const HandlerDependencies = Layer.mergeAll(
+  TodoStore.Default
+  // Future handler dependencies go here:
+  // Logger.Default,
+  // Analytics.Default,
+  // EmailService.Default,
+);
+
+// Helper for handlers that need dependencies
+const withDependencies =
+  <I, O, R>(handler: (input: I) => Effect.Effect<O, never, R>) =>
+  (input: I) =>
+    handler(input).pipe(Effect.provide(HandlerDependencies));
 
 const getCurrentDateTool = AiTool.make("getCurrentDate", {
   description:
@@ -45,7 +60,7 @@ const writeTodoTool = AiTool.make("writeTodo", {
         status: Schema.Literal(
           "pending",
           "in_progress",
-          "completed",
+          "completed"
         ).annotations({
           description:
             "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
@@ -57,7 +72,7 @@ const writeTodoTool = AiTool.make("writeTodo", {
       }).annotations({
         description:
           "A single todo item with content, status, and optional ID for updates",
-      }),
+      })
     ).annotations({
       description:
         "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
@@ -66,10 +81,6 @@ const writeTodoTool = AiTool.make("writeTodo", {
   success: Schema.Struct({
     todos: Schema.Array(TodoItem).annotations({
       description: "The complete updated todo batch with all generated IDs",
-    }),
-    message: Schema.optional(Schema.String).annotations({
-      description:
-        "Optional status message (e.g., 'All todos completed. Batch cleared.')",
     }),
   }),
 });
@@ -80,8 +91,11 @@ export const toolKitLayer = toolkit.toLayer({
   getCurrentDate: () => {
     return Effect.succeed({ datetime: new Date().toLocaleString() });
   },
-  writeTodo: ({ todos }) => {
-    const result = TodoItem.replaceBatch([...todos]);
-    return Effect.succeed(result);
-  },
+
+  writeTodo: withDependencies(({ todos }) =>
+    Effect.gen(function* () {
+      const todoStore = yield* TodoStore;
+      return yield* todoStore.replaceBatch([...todos]);
+    })
+  ),
 });
