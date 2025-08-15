@@ -81,7 +81,9 @@ export const runChatLoop = Effect.gen(function* () {
             yield* Console.info("\n\u001b[32m⏺\u001b[0m Current Date:");
             for (const [, { name, result }] of response.results) {
               if (name === "getCurrentDate" && result && "datetime" in result) {
-                yield* Console.info(`  ⎿  ${result.datetime}`);
+                yield* Console.info(
+                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`
+                );
               }
             }
             break;
@@ -93,7 +95,8 @@ export const runChatLoop = Effect.gen(function* () {
             );
             for (const [, { name, result }] of response.results) {
               if (name === "searchEngine" && result && "results" in result) {
-                yield* Console.info(`  ⎿  ${result.results.substring(0, 50)}`);
+                const firstLine = result.results.trim().split("\n")[0] ?? "";
+                yield* Console.info(`  ⎿  \u001b[2m${firstLine}\u001b[0m`);
               }
             }
             break;
@@ -109,7 +112,8 @@ export const runChatLoop = Effect.gen(function* () {
                 result &&
                 "content" in result
               ) {
-                yield* Console.info(`  ⎿  ${result.content.substring(0, 50)}`);
+                const firstLine = result.content.trim().split("\n")[0] ?? "";
+                yield* Console.info(`  ⎿  \u001b[2m${firstLine}\u001b[0m`);
               }
             }
             break;
