@@ -61,19 +61,19 @@ const writeTodoTool = AiTool.make("todo", {
         status: Schema.Literal(
           "pending",
           "in_progress",
-          "completed",
+          "completed"
         ).annotations({
           description:
             "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
         }),
-        id: Schema.optional(Schema.String).annotations({
+        id: Schema.NullOr(Schema.String).annotations({
           description:
             "Unique identifier for existing todos. Omit for new todos - system will generate UUID automatically",
         }),
       }).annotations({
         description:
           "A single todo item with content, status, and optional ID for updates",
-      }),
+      })
     ).annotations({
       description:
         "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
@@ -87,7 +87,11 @@ const writeTodoTool = AiTool.make("todo", {
 });
 
 // Helper functions for BrightData API
-const searchUrl = (engine: string, query: string, cursor?: string): string => {
+const searchUrl = (
+  engine: string,
+  query: string,
+  cursor?: string | null
+): string => {
   const encodedQuery = encodeURIComponent(query);
   const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
 
@@ -131,12 +135,12 @@ const searchTool = AiTool.make("search", {
     query: Schema.String.annotations({
       description: "The search query to execute",
     }),
-    engine: Schema.optional(
-      Schema.Literal("google", "bing", "yandex"),
+    engine: Schema.NullOr(
+      Schema.Literal("google", "bing", "yandex")
     ).annotations({
       description: "Search engine to use (default: google)",
     }),
-    cursor: Schema.optional(Schema.String).annotations({
+    cursor: Schema.NullOr(Schema.String).annotations({
       description: "Pagination cursor for next page",
     }),
   },
@@ -190,7 +194,7 @@ export const toolkit = AiToolkit.make(
   timeTool,
   writeTodoTool,
   searchTool,
-  fetchTool,
+  fetchTool
 );
 
 export const toolKitLayer = toolkit.toLayer({
@@ -201,23 +205,30 @@ export const toolKitLayer = toolkit.toLayer({
   todo: ({ todos }) =>
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
-      return yield* todoStore.writeTodos([...todos]);
+      // Filter out null IDs to match expected type
+      const processedTodos = todos.map((todo) => ({
+        content: todo.content,
+        status: todo.status,
+        ...(todo.id && { id: todo.id }),
+      }));
+      return yield* todoStore.writeTodos([...processedTodos]);
     }).pipe(Effect.provide(TodoStore.Default)),
 
-  search: ({ query, engine = "google", cursor }) =>
+  search: ({ query, engine, cursor }) =>
     Effect.gen(function* () {
       const httpClient = yield* HttpClient.HttpClient;
       const brightDataApiKey = yield* Config.string("BRIGHTDATA_API_KEY");
       const unlockerZone = yield* Config.string("BRIGHTDATA_UNLOCKER_ZONE");
 
-      const targetUrl = searchUrl(engine, query, cursor);
+      const safeEngine = engine ?? "google";
+      const targetUrl = searchUrl(safeEngine, query, cursor);
 
       const request = HttpClientRequest.post(
-        "https://api.brightdata.com/request",
+        "https://api.brightdata.com/request"
       ).pipe(
         HttpClientRequest.setHeader(
           "Authorization",
-          `Bearer ${brightDataApiKey}`,
+          `Bearer ${brightDataApiKey}`
         ),
         HttpClientRequest.setHeader("Content-Type", "application/json"),
         HttpClientRequest.bodyUnsafeJson({
@@ -225,7 +236,7 @@ export const toolKitLayer = toolkit.toLayer({
           zone: unlockerZone,
           format: "raw",
           data_format: "markdown",
-        }),
+        })
       );
 
       const response = yield* httpClient.execute(request);
@@ -240,11 +251,11 @@ export const toolKitLayer = toolkit.toLayer({
       const unlockerZone = yield* Config.string("BRIGHTDATA_UNLOCKER_ZONE");
 
       const request = HttpClientRequest.post(
-        "https://api.brightdata.com/request",
+        "https://api.brightdata.com/request"
       ).pipe(
         HttpClientRequest.setHeader(
           "Authorization",
-          `Bearer ${brightDataApiKey}`,
+          `Bearer ${brightDataApiKey}`
         ),
         HttpClientRequest.setHeader("Content-Type", "application/json"),
         HttpClientRequest.bodyUnsafeJson({
@@ -252,7 +263,7 @@ export const toolKitLayer = toolkit.toLayer({
           zone: unlockerZone,
           format: "raw",
           data_format: "markdown",
-        }),
+        })
       );
 
       const response = yield* httpClient.execute(request);
