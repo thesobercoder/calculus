@@ -90,6 +90,6 @@ export const toolKitLayer = toolkit.toLayer({
   writeTodo: ({ todos }) =>
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
-      return yield* todoStore.replaceBatch([...todos]);
+      return yield* todoStore.writeTodos([...todos]);
     }).pipe(Effect.provide(HandlerDependencies)),
 });
