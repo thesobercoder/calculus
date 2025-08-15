@@ -13,12 +13,12 @@ const main = Effect.gen(function* () {
 
 // Close ClientLayer over its dependency (HttpClient)
 const ClientLive = ClientLayer.pipe(
-  Layer.provide(FetchHttpClient.layer) // now R = never for ClientLive
+  Layer.provide(FetchHttpClient.layer), // now R = never for ClientLive
 );
 
 // ModelLayer depends on OpenAiClient, which ClientLive provides
 const ModelLive = ModelLayer.pipe(
-  Layer.provide(ClientLive) // R = never as well
+  Layer.provide(ClientLive), // R = never as well
 );
 
 // Build the full application layer graph
@@ -27,7 +27,7 @@ const AppLayer = Layer.mergeAll(
   ModelLive, // provides Model service, no deps
   ClientLive, // provides OpenAiClient, no deps
   FetchHttpClient.layer, // still export HttpClient so others can use it
-  BunContext.layer
+  BunContext.layer,
 );
 
 // Supply the layer once and run the program

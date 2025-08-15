@@ -64,21 +64,99 @@ bun run start
 
 ### Core Structure
 
-- **Entry Point**: `src/index.ts` - Main application entry point
+- **Entry Point**: `src/index.ts` - Main application entry and layer composition
 - **Chat Logic**: `src/chat.ts` - Chat functionality and conversation management
 - **Client Setup**: `src/client.ts` - OpenAI client configuration and setup
-- **AI Tools**: `src/tools.ts` - AI toolkit with custom tools for enhanced functionality
-- **Data Schemas**: `src/schemas.ts` - Schema.Class definitions for application data structures
+- **AI Tools**: `src/tools.ts` - AI toolkit with custom tools and centralized handler dependencies
+- **Data Types**: `src/types.ts` - Schema.Class definitions for application data structures
+- **Business Logic**: `src/stores.ts` - Effect services for state management and domain operations
 - **UI Components**: `src/ui.ts` - Console UI components and formatting
 - **Runtime**: Uses BunRuntime for Effect program execution
 - **AI Integration**: Built on `@effect/ai` with OpenAI-compatible endpoints
 
+### Effect Architecture Patterns
+
+#### 1. Schema.Class Pattern
+
+TodoItem uses `Schema.Class` for type-safe data structures with built-in methods:
+
+```typescript
+export class TodoItem extends Schema.Class<TodoItem>("TodoItem")({
+  content: Schema.String,
+  status: Schema.Literal("pending", "in_progress", "completed"),
+  id: Schema.String,
+}) {
+  static create(content: string, status = "pending", id?: string) {
+    return Effect.sync(() => {
+      const generatedId = id ?? crypto.randomUUID();
+      return new TodoItem({ content, status, id: generatedId });
+    });
+  }
+}
+```
+
+#### 2. Effect Services for State Management
+
+TodoStore implements a Redux-like pattern using `Effect.Service` with `Effect.Ref` for fiber-safe state:
+
+```typescript
+export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
+  effect: Effect.gen(function* () {
+    const batchRef = yield* Ref.make<TodoItem[]>([]);
+    return {
+      replaceBatch: (inputs) => /* Effect-based implementation */,
+      addTodo: (content, status) => /* Effect-based implementation */,
+      // ... other CRUD operations
+    };
+  })
+}) {}
+```
+
+#### 3. Layer Composition and Dependency Injection
+
+The application uses proper layer composition to resolve dependencies:
+
+```typescript
+// Close layers over their dependencies
+const ClientLive = ClientLayer.pipe(Layer.provide(FetchHttpClient.layer));
+const ModelLive = ModelLayer.pipe(Layer.provide(ClientLive));
+
+// Merge all layers and provide in single call
+const AppLayer = Layer.mergeAll(
+  toolKitLayer, // self-contained with handler dependencies
+  ModelLive, // provides Model service
+  ClientLive, // provides OpenAiClient
+  FetchHttpClient.layer,
+  BunContext.layer,
+);
+```
+
+#### 4. AiTool Handler Dependencies
+
+AI tool handlers require `R = never` and use centralized dependency resolution:
+
+```typescript
+const HandlerDependencies = Layer.mergeAll(
+  TodoStore.Default,
+  // Future dependencies go here
+);
+
+const toolKitLayer = toolkit.toLayer({
+  writeTodo: ({ todos }) =>
+    Effect.gen(function* () {
+      const todoStore = yield* TodoStore;
+      return yield* todoStore.replaceBatch([...todos]);
+    }).pipe(Effect.provide(HandlerDependencies)),
+});
+```
+
 ### Key Patterns
 
 - **Effect Composition**: Main logic uses `Effect.gen` for monadic composition
-- **Layer Architecture**: HTTP client, AI model, and OpenAI client provided as layers
-- **Configuration**: Environment-based config using `Config.string` and `Config.redacted`
-- **Console UI**: Custom ASCII box formatting with ANSI escape codes for styling
+- **Fiber-Safe State**: `Effect.Ref` for concurrent state management
+- **Dependency Injection**: Layer-based dependency resolution with single `Effect.provide` calls
+- **Schema Validation**: Runtime type checking with Effect's Schema system
+- **Functional Error Handling**: Type-safe error propagation through Effect chains
 
 ## Configuration
 
@@ -91,31 +169,67 @@ The application requires these environment variables:
 
 ## AI Tools
 
-The application includes a custom AI toolkit (`src/tools.ts`) that extends the chatbot's capabilities:
+The application includes a custom AI toolkit (`src/tools.ts`) that extends the chatbot's capabilities with centralized dependency management:
 
 ### Available Tools
 
 - **getCurrentDate**: Retrieves the current date and time in localized format
-  - Description: "Get the current date and time"
+  - Description: "Get the current date and time in the user's local timezone"
   - Returns: Current datetime as a formatted string
+  - Implementation: Pure function returning `new Date().toLocaleString()`
 
-- **writeTodo**: Manage a batch of todos
-  - Description: "Manage a batch of todos. Provide an array of todo items to replace the entire batch. IDs are auto-generated for new items or use existing ID to update"
+- **writeTodo**: Advanced todo batch management with Redux-like operations
+  - Description: "Manage a batch of todos for task planning and progress tracking"
   - Parameters: `todos` (array of todo items with `content`, `status`, `id` (optional))
   - Status values: `"pending"`, `"in_progress"`, `"completed"`
-  - ID Generation: Automatically generates unique IDs for new todos; include existing ID to update specific todos
-  - Returns: Current batch of todos with generated IDs and optional message
-  - Auto-clears: When all todos in a batch are marked `"completed"`, the entire batch is automatically cleared
+  - Features:
+    - **Auto ID Generation**: Automatically generates UUIDs for new todos
+    - **Batch Replacement**: Replaces entire todo batch with provided array
+    - **Auto-Clear**: When all todos are marked `"completed"`, batch is automatically cleared
+    - **Persistence**: Uses TodoStore service for fiber-safe state management
+  - Returns: Complete updated batch with all generated IDs
 
 ### Toolkit Architecture
 
-The AI toolkit is built using `@effect/ai` abstractions:
+The AI toolkit leverages Effect's dependency injection system:
 
-- **AiTool**: Individual tool definitions with schemas and descriptions
-- **AiToolkit**: Collection of tools that can be used by the AI model
-- **toolKitLayer**: Effect layer that provides tool implementations
+#### Tool Definition
 
-This allows the AI model to call specific functions during conversations, enabling more dynamic and contextual responses.
+```typescript
+const writeTodoTool = AiTool.make("writeTodo", {
+  description: "Manage a batch of todos for task planning...",
+  parameters: { todos: Schema.Array(/* todo schema */) },
+  success: Schema.Struct({ todos: Schema.Array(TodoItem) }),
+});
+```
+
+#### Centralized Dependencies
+
+```typescript
+const HandlerDependencies = Layer.mergeAll(
+  TodoStore.Default,
+  // Future dependencies: Logger.Default, Analytics.Default, etc.
+);
+```
+
+#### Handler Implementation
+
+```typescript
+const toolKitLayer = toolkit.toLayer({
+  writeTodo: ({ todos }) =>
+    Effect.gen(function* () {
+      const todoStore = yield* TodoStore;
+      return yield* todoStore.replaceBatch([...todos]);
+    }).pipe(Effect.provide(HandlerDependencies)),
+});
+```
+
+This architecture enables:
+
+- **Type Safety**: Full TypeScript inference for tool parameters and return types
+- **Dependency Injection**: Clean separation of concerns with Effect services
+- **Extensibility**: Easy addition of new tools and services
+- **Testing**: Mockable dependencies for unit testing
 
 ## Dependencies
 
@@ -143,9 +257,10 @@ root/
 ├── src/
 │   ├── chat.ts           # Chat functionality and conversation logic
 │   ├── client.ts         # OpenAI client configuration and setup
-│   ├── index.ts          # Main application entry point
-│   ├── schemas.ts        # Schema.Class definitions for application data structures
-│   ├── tools.ts          # AI toolkit with custom tools and implementations
+│   ├── index.ts          # Main application entry point and layer composition
+│   ├── stores.ts         # Effect services for state management (TodoStore)
+│   ├── tools.ts          # AI toolkit with centralized handler dependencies
+│   ├── types.ts          # Schema.Class definitions (TodoItem)
 │   └── ui.ts             # Console UI components and formatting
 ├── dist/                 # Compiled output (generated)
 ├── node_modules/         # Dependencies (generated)
@@ -157,3 +272,13 @@ root/
 ├── package.json         # Project configuration and dependencies
 └── tsconfig.json        # TypeScript configuration
 ```
+
+### File Organization
+
+- **`types.ts`**: Schema.Class definitions and domain models
+- **`stores.ts`**: Effect services implementing business logic and state management
+- **`tools.ts`**: AI toolkit with handler implementations and dependency management
+- **`index.ts`**: Application bootstrap with proper layer composition
+- **`client.ts`**: External service configuration (OpenAI client)
+- **`chat.ts`**: Core application logic and user interaction
+- **`ui.ts`**: Presentation layer and console formatting

@@ -73,7 +73,7 @@ export const runChatLoop = Effect.gen(function* () {
             "todos" in result
           ) {
             const todoResult = result;
-            yield* displayTodoList(todoResult.todos, todoResult.message);
+            yield* displayTodoList(todoResult.todos);
           }
         }
       }

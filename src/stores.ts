@@ -1,34 +1,5 @@
-import { Effect, Ref, Schema } from "effect";
-
-// Todo data structure (matches TodoWrite tool format)
-export class TodoItem extends Schema.Class<TodoItem>("TodoItem")({
-  content: Schema.String,
-  status: Schema.Literal("pending", "in_progress", "completed"),
-  id: Schema.String,
-}) {
-  static create(
-    content: string,
-    status: "pending" | "in_progress" | "completed" = "pending",
-    id?: string
-  ) {
-    return Effect.sync(() => {
-      const generatedId = id ?? crypto.randomUUID();
-      return new TodoItem({ content, status, id: generatedId });
-    });
-  }
-
-  isCompleted(): boolean {
-    return this.status === "completed";
-  }
-
-  isPending(): boolean {
-    return this.status === "pending";
-  }
-
-  isInProgress(): boolean {
-    return this.status === "in_progress";
-  }
-}
+import { Effect, Ref } from "effect";
+import { TodoItem } from "./types.js";
 
 // Todo Store Service (Redux-like pattern)
 export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
@@ -38,7 +9,7 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
     return {
       // Get current batch
       getCurrentBatch: Effect.flatMap(Ref.get(batchRef), (batch) =>
-        Effect.succeed([...batch])
+        Effect.succeed([...batch]),
       ),
 
       // Replace entire batch with new todos
@@ -47,7 +18,7 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
           readonly content: string;
           readonly status: "pending" | "in_progress" | "completed";
           readonly id?: string | undefined;
-        }>
+        }>,
       ) =>
         Effect.gen(function* () {
           // Process todos and generate IDs for new items
@@ -56,7 +27,7 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
             const todo = yield* TodoItem.create(
               input.content,
               input.status,
-              input.id
+              input.id,
             );
             processedTodos.push(todo);
           }
@@ -66,7 +37,7 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
 
           // Check if all todos are completed
           const allCompleted = processedTodos.every((todo) =>
-            todo.isCompleted()
+            todo.isCompleted(),
           );
 
           // Store the current batch before potentially clearing it
@@ -75,9 +46,6 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
           if (allCompleted && processedTodos.length > 0) {
             // Clear the batch if all todos are completed
             yield* Ref.set(batchRef, []);
-            return {
-              todos: todosToReturn,
-            };
           }
 
           return {
@@ -87,13 +55,13 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
 
       // Clear all todos
       clearBatch: Effect.flatMap(Ref.set(batchRef, []), () =>
-        Effect.succeed(undefined)
+        Effect.succeed(undefined),
       ),
 
       // Add a single todo
       addTodo: (
         content: string,
-        status: "pending" | "in_progress" | "completed" = "pending"
+        status: "pending" | "in_progress" | "completed" = "pending",
       ) =>
         Effect.gen(function* () {
           const newTodo = yield* TodoItem.create(content, status);
@@ -107,7 +75,7 @@ export class TodoStore extends Effect.Service<TodoStore>()("TodoStore", {
         updates: Partial<{
           content: string;
           status: "pending" | "in_progress" | "completed";
-        }>
+        }>,
       ) =>
         Effect.gen(function* () {
           const updated = yield* Ref.modify(batchRef, (batch) => {

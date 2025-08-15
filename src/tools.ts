@@ -1,21 +1,16 @@
 import { AiTool, AiToolkit } from "@effect/ai";
 import { Effect, Layer, Schema } from "effect";
-import { TodoItem, TodoStore } from "./schemas.js";
+import { TodoStore } from "./stores.js";
+import { TodoItem } from "./types.js";
 
 // Centralized handler dependencies
 const HandlerDependencies = Layer.mergeAll(
-  TodoStore.Default
+  TodoStore.Default,
   // Future handler dependencies go here:
   // Logger.Default,
   // Analytics.Default,
   // EmailService.Default,
 );
-
-// Helper for handlers that need dependencies
-const withDependencies =
-  <I, O, R>(handler: (input: I) => Effect.Effect<O, never, R>) =>
-  (input: I) =>
-    handler(input).pipe(Effect.provide(HandlerDependencies));
 
 const getCurrentDateTool = AiTool.make("getCurrentDate", {
   description:
@@ -60,7 +55,7 @@ const writeTodoTool = AiTool.make("writeTodo", {
         status: Schema.Literal(
           "pending",
           "in_progress",
-          "completed"
+          "completed",
         ).annotations({
           description:
             "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
@@ -72,7 +67,7 @@ const writeTodoTool = AiTool.make("writeTodo", {
       }).annotations({
         description:
           "A single todo item with content, status, and optional ID for updates",
-      })
+      }),
     ).annotations({
       description:
         "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
@@ -92,10 +87,9 @@ export const toolKitLayer = toolkit.toLayer({
     return Effect.succeed({ datetime: new Date().toLocaleString() });
   },
 
-  writeTodo: withDependencies(({ todos }) =>
+  writeTodo: ({ todos }) =>
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
       return yield* todoStore.replaceBatch([...todos]);
-    })
-  ),
+    }).pipe(Effect.provide(HandlerDependencies)),
 });

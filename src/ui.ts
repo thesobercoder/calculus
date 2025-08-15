@@ -1,5 +1,5 @@
 import { Console, Effect } from "effect";
-import { TodoItem } from "./schemas.js";
+import { TodoItem } from "./types.js";
 
 const BOX_WIDTH = 62;
 
