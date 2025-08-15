@@ -58,8 +58,8 @@ export const runChatLoop = Effect.gen(function* () {
       toolkit: toolkit,
     });
 
-    // If tools were called, generate follow-up response with results
-    if (response.toolCalls.length > 0) {
+    // Keep calling tools until the LLM stops requesting them (agentic loop)
+    while (response.toolCalls.length > 0) {
       // Display which tools were called (excluding writeTodo)
       // const nonTodoToolCalls = response.toolCalls.filter(
       //   (call) => call.name !== "writeTodo",
@@ -87,7 +87,6 @@ export const runChatLoop = Effect.gen(function* () {
       //   }
       // }
 
-      // Generate a follow-up response with the results
       response = yield* chat.generateText({
         prompt: [],
         toolkit: toolkit,
