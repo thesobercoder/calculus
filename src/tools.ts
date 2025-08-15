@@ -18,6 +18,7 @@ const getCurrentDateTool = AiTool.make("getCurrentDate", {
 • Reference "today's date" in your responses
 
 Returns a localized date/time string (e.g., "12/25/2024, 3:30:45 PM").`,
+  parameters: {},
   success: Schema.Struct({
     datetime: Schema.String.annotations({
       description:
