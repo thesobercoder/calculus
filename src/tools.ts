@@ -1,23 +1,12 @@
 import { AiTool, AiToolkit } from "@effect/ai";
 import { Effect, Schema } from "effect";
-import { randomUUID } from "crypto";
 import { TodoItem } from "./schemas.js";
-
-// In-memory todo batch storage
-let currentBatch: TodoItem[] = [];
 
 const getCurrentDateTool = AiTool.make("getCurrentDate", {
   description: "Get the current date and time",
   success: Schema.Struct({
     datetime: Schema.String,
   }),
-});
-
-// Input schema for the tool (allows optional ID)
-const TodoItemInput = Schema.Struct({
-  content: Schema.String,
-  status: Schema.Literal("pending", "in_progress", "completed"),
-  id: Schema.optional(Schema.String),
 });
 
 const writeTodoTool = AiTool.make("writeTodo", {
@@ -36,7 +25,13 @@ Behavior:
 
 Always reference the returned todo IDs in your response to confirm successful creation/updates.`,
   parameters: {
-    todos: Schema.Array(TodoItemInput),
+    todos: Schema.Array(
+      Schema.Struct({
+        content: Schema.String,
+        status: Schema.Literal("pending", "in_progress", "completed"),
+        id: Schema.optional(Schema.String),
+      }),
+    ),
   },
   success: Schema.Struct({
     todos: Schema.Array(TodoItem),
@@ -51,34 +46,7 @@ export const toolKitLayer = toolkit.toLayer({
     return Effect.succeed({ datetime: new Date().toLocaleString() });
   },
   writeTodo: ({ todos }) => {
-    // Process todos and generate IDs for new items
-    const processedTodos: TodoItem[] = todos.map((todo) => {
-      if (todo.id) {
-        // Existing todo with ID - keep the ID
-        return TodoItem.create(todo.content, todo.status, todo.id);
-      } else {
-        // New todo without ID - generate UUID
-        const newId = randomUUID();
-        return TodoItem.create(todo.content, todo.status, newId);
-      }
-    });
-
-    // Replace the entire batch with the processed todos
-    currentBatch = processedTodos;
-
-    // Check if all todos are completed
-    const allCompleted = currentBatch.every((todo) => todo.isCompleted());
-    let message: string | undefined;
-
-    if (allCompleted && currentBatch.length > 0) {
-      // Clear the batch if all todos are completed
-      currentBatch = [];
-      message = "All todos completed. Batch cleared.";
-    }
-
-    return Effect.succeed({
-      todos: currentBatch,
-      message,
-    });
+    const result = TodoItem.replaceBatch([...todos]);
+    return Effect.succeed(result);
   },
 });
