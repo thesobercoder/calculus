@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is a CLI chatbot built with **EffectTS** and **Bun**. The application follows functional programming patterns with Effect's type-safe abstractions.
+**Calculus** is a CLI chatbot built with **EffectTS** and **Bun**. The application follows functional programming patterns with Effect's type-safe abstractions.
 
 ### Core Structure
 

@@ -13,21 +13,21 @@ const createChat = AiChat.fromPrompt({
     `Always respond with keeping the current locale in mind`,
     "You have access to tools. Use them intelligently to answer the user's questions",
     "<task_management>",
-    "CRITICAL: ALWAYS use the writeTodo tool FIRST before answering ANY user question or request.",
+    "CRITICAL: ALWAYS use the todo tool FIRST before answering ANY user question or request.",
     "This includes:",
     "- Simple questions that require research or analysis",
     "- Complex tasks that need implementation",
     "- Debugging or troubleshooting requests",
     "- Code explanations or reviews",
     "- ANY user interaction that involves work",
-    "IMPORTANT: When the user gives you a task to perform, ALWAYS use the writeTodo tool first to break down the task into manageable steps.",
-    "Examples of when to use writeTodo:",
+    "IMPORTANT: When the user gives you a task to perform, ALWAYS use the todo tool first to break down the task into manageable steps.",
+    "Examples of when to use todo:",
     "- User asks to implement a feature",
     "- User requests debugging or fixing issues",
     "- User wants to refactor code",
     "- User asks questions about code or systems",
     "- Any multi-step task that requires planning",
-    "Use the writeTodo tool to:",
+    "Use the todo tool to:",
     "1. Break complex tasks into smaller, actionable steps",
     "2. Track your progress through the task",
     "3. Ensure you don't miss any important steps",
@@ -39,9 +39,9 @@ const createChat = AiChat.fromPrompt({
     "</task_management>",
     "<critical_reminders>",
     "CRITICAL: NEVER print, display, or format todo lists in your responses!",
-    "The system automatically displays todos when you use the writeTodo tool.",
+    "The system automatically displays todos when you use the todo tool.",
     "Do NOT include todo formatting, lists, or status displays in your text responses.",
-    "Simply use the writeTodo tool and continue with your work - the UI handles todo display.",
+    "Simply use the todo tool and continue with your work - the UI handles todo display",
     "</critical_reminders>",
   ].join("\n"),
 });
@@ -71,10 +71,10 @@ export const runChatLoop = Effect.gen(function* () {
       for (const call of response.toolCalls) {
         // Call the tool and wait for the result
         switch (call.name) {
-          case "writeTodo": {
+          case "todo": {
             yield* Console.info("\n\u001b[32m⏺\u001b[0m Todos");
             for (const [, { name, result }] of response.results) {
-              if (name === "writeTodo" && result && "todos" in result) {
+              if (name === "todo" && result && "todos" in result) {
                 for (let i = 0; i < result.todos.length; i++) {
                   const todo = result.todos[i]!;
                   const status = todo.status === "completed" ? "☒" : "☐";
@@ -85,10 +85,10 @@ export const runChatLoop = Effect.gen(function* () {
             }
             break;
           }
-          case "getCurrentDate": {
+          case "time": {
             yield* Console.info("\n\u001b[32m⏺\u001b[0m Date");
             for (const [, { name, result }] of response.results) {
-              if (name === "getCurrentDate" && result && "datetime" in result) {
+              if (name === "time" && result && "datetime" in result) {
                 yield* Console.info(
                   `  ⎿  \u001b[2m${result.datetime}\u001b[0m`
                 );
@@ -96,30 +96,26 @@ export const runChatLoop = Effect.gen(function* () {
             }
             break;
           }
-          case "searchEngine": {
+          case "search": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
               `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`
             );
             for (const [, { name, result }] of response.results) {
-              if (name === "searchEngine" && result && "results" in result) {
+              if (name === "search" && result && "results" in result) {
                 const firstLine = result.results.trim().split("\n")[0] ?? "";
                 yield* Console.info(`  ⎿  \u001b[2m${firstLine}\u001b[0m`);
               }
             }
             break;
           }
-          case "scrapeAsMarkdown": {
+          case "fetch": {
             const params = call.params as { url: string };
             yield* Console.info(
               `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`
             );
             for (const [, { name, result }] of response.results) {
-              if (
-                name === "scrapeAsMarkdown" &&
-                result &&
-                "content" in result
-              ) {
+              if (name === "fetch" && result && "content" in result) {
                 const firstLine = result.content.trim().split("\n")[0] ?? "";
                 yield* Console.info(`  ⎿  \u001b[2m${firstLine}\u001b[0m`);
               }

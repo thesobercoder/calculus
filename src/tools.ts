@@ -8,7 +8,7 @@ import { Config, Effect, Schema } from "effect";
 import { TodoStore } from "./stores.js";
 import { TodoItem } from "./types.js";
 
-const getCurrentDateTool = AiTool.make("getCurrentDate", {
+const timeTool = AiTool.make("time", {
   description: `Get the current date and time in the user's local timezone.
 
 🕒 Use this tool when you need to:
@@ -27,7 +27,7 @@ Returns a localized date/time string (e.g., "12/25/2024, 3:30:45 PM").`,
   }),
 });
 
-const writeTodoTool = AiTool.make("writeTodo", {
+const writeTodoTool = AiTool.make("todo", {
   description: `Manage task planning and progress tracking with an intelligent todo system.
 
 📋 **PURPOSE**: Break down complex work into manageable, trackable steps
@@ -103,7 +103,7 @@ const searchUrl = (engine: string, query: string, cursor?: string): string => {
   }
 };
 
-const searchEngineTool = AiTool.make("searchEngine", {
+const searchTool = AiTool.make("search", {
   description: `Search the web using Google, Bing, or Yandex to get search result links.
 
 🔍 **PURPOSE**: Get search result links from major search engines (NOT full page content)
@@ -147,7 +147,7 @@ const searchEngineTool = AiTool.make("searchEngine", {
   }),
 });
 
-const scrapeAsMarkdownTool = AiTool.make("scrapeAsMarkdown", {
+const fetchTool = AiTool.make("fetch", {
   description: `Extract clean, readable content from any webpage with advanced anti-detection capabilities.
 
 📄 **PURPOSE**: Convert any webpage into clean, structured markdown text
@@ -187,24 +187,24 @@ const scrapeAsMarkdownTool = AiTool.make("scrapeAsMarkdown", {
 });
 
 export const toolkit = AiToolkit.make(
-  getCurrentDateTool,
+  timeTool,
   writeTodoTool,
-  searchEngineTool,
-  scrapeAsMarkdownTool,
+  searchTool,
+  fetchTool,
 );
 
 export const toolKitLayer = toolkit.toLayer({
-  getCurrentDate: () => {
+  time: () => {
     return Effect.succeed({ datetime: new Date().toLocaleString() });
   },
 
-  writeTodo: ({ todos }) =>
+  todo: ({ todos }) =>
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
       return yield* todoStore.writeTodos([...todos]);
     }).pipe(Effect.provide(TodoStore.Default)),
 
-  searchEngine: ({ query, engine = "google", cursor }) =>
+  search: ({ query, engine = "google", cursor }) =>
     Effect.gen(function* () {
       const httpClient = yield* HttpClient.HttpClient;
       const brightDataApiKey = yield* Config.string("BRIGHTDATA_API_KEY");
@@ -233,7 +233,7 @@ export const toolKitLayer = toolkit.toLayer({
       return { results: data };
     }).pipe(Effect.provide(FetchHttpClient.layer), Effect.orDie),
 
-  scrapeAsMarkdown: ({ url }) =>
+  fetch: ({ url }) =>
     Effect.gen(function* () {
       const httpClient = yield* HttpClient.HttpClient;
       const brightDataApiKey = yield* Config.string("BRIGHTDATA_API_KEY");

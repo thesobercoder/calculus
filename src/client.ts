@@ -4,19 +4,19 @@ import { HttpClient, HttpClientRequest } from "@effect/platform";
 import { Config } from "effect";
 
 export const ClientLayer = OpenAiClient.layerConfig({
-  apiUrl: Config.string("OPENAI_BASE_URL"),
-  apiKey: Config.redacted("OPENAI_API_KEY"),
+  apiUrl: Config.succeed("https://openrouter.ai/api/v1"),
+  apiKey: Config.redacted("OPENROUTER_API_KEY"),
   transformClient: (client: HttpClient.HttpClient) =>
     client.pipe(
       HttpClient.mapRequest((request) =>
         request.pipe(
           HttpClientRequest.setHeader(
             "HTTP-Referer",
-            "https://thesobercoder.in"
+            "https://thesobercoder.in",
           ),
-          HttpClientRequest.setHeader("X-Title", "Calculus")
-        )
-      )
+          HttpClientRequest.setHeader("X-Title", "Calculus"),
+        ),
+      ),
     ),
 });
 
