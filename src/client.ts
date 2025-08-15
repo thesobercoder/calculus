@@ -12,16 +12,16 @@ export const ClientLayer = OpenAiClient.layerConfig({
         request.pipe(
           HttpClientRequest.setHeader(
             "HTTP-Referer",
-            "https://thesobercoder.in",
+            "https://thesobercoder.in"
           ),
-          HttpClientRequest.setHeader("X-Title", "Calculus"),
-        ),
-      ),
+          HttpClientRequest.setHeader("X-Title", "Calculus")
+        )
+      )
     ),
 });
 
 export const ModelLayer = OpenAiLanguageModel.layer({
-  model: "z-ai/glm-4.5",
+  model: "anthropic/claude-sonnet-4",
   config: {
     temperature: 0.5,
   },

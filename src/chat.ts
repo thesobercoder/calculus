@@ -72,7 +72,7 @@ export const runChatLoop = Effect.gen(function* () {
         // Call the tool and wait for the result
         switch (call.name) {
           case "writeTodo": {
-            yield* Console.info("\n\u001b[32m⏺\u001b[0m Update Todos");
+            yield* Console.info("\n\u001b[32m⏺\u001b[0m Todos");
             for (const [, { name, result }] of response.results) {
               if (name === "writeTodo" && result && "todos" in result) {
                 for (let i = 0; i < result.todos.length; i++) {
@@ -86,7 +86,7 @@ export const runChatLoop = Effect.gen(function* () {
             break;
           }
           case "getCurrentDate": {
-            yield* Console.info("\n\u001b[32m⏺\u001b[0m Current Date");
+            yield* Console.info("\n\u001b[32m⏺\u001b[0m Date");
             for (const [, { name, result }] of response.results) {
               if (name === "getCurrentDate" && result && "datetime" in result) {
                 yield* Console.info(
@@ -99,7 +99,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "searchEngine": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Search Engine (query: "${searchParams.query}")`
+              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`
             );
             for (const [, { name, result }] of response.results) {
               if (name === "searchEngine" && result && "results" in result) {
@@ -112,7 +112,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "scrapeAsMarkdown": {
             const params = call.params as { url: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Scrape as Markdown (url: "${params.url}")`
+              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`
             );
             for (const [, { name, result }] of response.results) {
               if (
