@@ -1,20 +1,23 @@
 import { AiTool, AiToolkit } from "@effect/ai";
-import { Effect, Layer, Schema } from "effect";
+import {
+  FetchHttpClient,
+  HttpClient,
+  HttpClientRequest,
+} from "@effect/platform";
+import { Config, Effect, Schema } from "effect";
 import { TodoStore } from "./stores.js";
 import { TodoItem } from "./types.js";
 
-// Centralized handler dependencies
-const HandlerDependencies = Layer.mergeAll(
-  TodoStore.Default,
-  // Future handler dependencies go here:
-  // Logger.Default,
-  // Analytics.Default,
-  // EmailService.Default,
-);
-
 const getCurrentDateTool = AiTool.make("getCurrentDate", {
-  description:
-    "Get the current date and time in the user's local timezone. Use this tool when you need to know what time/date it is right now for scheduling, logging, or time-based operations.",
+  description: `Get the current date and time in the user's local timezone.
+
+🕒 Use this tool when you need to:
+• Know the current date/time for timestamps or scheduling
+• Create time-based file names or logs
+• Determine business hours or time-sensitive operations
+• Reference "today's date" in your responses
+
+Returns a localized date/time string (e.g., "12/25/2024, 3:30:45 PM").`,
   success: Schema.Struct({
     datetime: Schema.String.annotations({
       description:
@@ -24,27 +27,29 @@ const getCurrentDateTool = AiTool.make("getCurrentDate", {
 });
 
 const writeTodoTool = AiTool.make("writeTodo", {
-  description: `Manage a batch of todos for task planning and progress tracking. This tool replaces the entire todo batch with the provided array.
+  description: `Manage task planning and progress tracking with an intelligent todo system.
 
-🎯 WHEN TO USE:
-- User requests implementing a feature
-- Debugging or fixing issues
-- Refactoring code
-- Any multi-step task requiring planning
-- Breaking down complex work into manageable steps
+📋 **PURPOSE**: Break down complex work into manageable, trackable steps
 
-📝 USAGE PATTERNS:
-- Create new todos: Provide objects with 'content' and 'status' (omit 'id')
-- Update existing todos: Include the existing 'id' along with 'content' and 'status'
-- Status progression: pending → in_progress → completed
+🎯 **WHEN TO USE**:
+• User requests implementing a feature or fixing bugs
+• Multi-step coding tasks (debugging, refactoring, testing)
+• Project planning and task organization
+• Breaking down complex requirements into actionable items
 
-⚡ BEHAVIOR:
-- Automatically generates unique IDs for new todos (when 'id' is omitted)
-- Preserves existing IDs when updating todos (when 'id' is provided)
-- Auto-clears: When ALL todos have status "completed", the entire batch is automatically cleared
-- Returns: Complete batch with all generated IDs and optional status message
+⚙️ **HOW IT WORKS**:
+• **Create new**: Provide 'content' and 'status' (omit 'id' - auto-generated)
+• **Update existing**: Include the existing 'id' with updated 'content'/'status'
+• **Status flow**: pending → in_progress → completed
+• **Auto-cleanup**: When all todos are completed, the list clears automatically
 
-🔍 The UI automatically displays the todo list - do NOT format todos in your response!`,
+💡 **BEST PRACTICES**:
+• Write specific, actionable tasks (not vague descriptions)
+• Use status updates to show real progress
+• Only mark tasks 'completed' when fully finished
+• Break large tasks into smaller, manageable pieces
+
+⚠️ **IMPORTANT**: The UI displays todos automatically - don't format them in your response!`,
   parameters: {
     todos: Schema.Array(
       Schema.Struct({
@@ -55,7 +60,7 @@ const writeTodoTool = AiTool.make("writeTodo", {
         status: Schema.Literal(
           "pending",
           "in_progress",
-          "completed",
+          "completed"
         ).annotations({
           description:
             "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
@@ -67,7 +72,7 @@ const writeTodoTool = AiTool.make("writeTodo", {
       }).annotations({
         description:
           "A single todo item with content, status, and optional ID for updates",
-      }),
+      })
     ).annotations({
       description:
         "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
@@ -80,7 +85,111 @@ const writeTodoTool = AiTool.make("writeTodo", {
   }),
 });
 
-export const toolkit = AiToolkit.make(getCurrentDateTool, writeTodoTool);
+// Helper functions for BrightData API
+const searchUrl = (engine: string, query: string, cursor?: string): string => {
+  const encodedQuery = encodeURIComponent(query);
+  const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+
+  switch (engine) {
+    case "google":
+      return `https://www.google.com/search?q=${encodedQuery}${cursorParam}`;
+    case "bing":
+      return `https://www.bing.com/search?q=${encodedQuery}${cursorParam}`;
+    case "yandex":
+      return `https://yandex.com/search/?text=${encodedQuery}${cursorParam}`;
+    default:
+      return `https://www.google.com/search?q=${encodedQuery}${cursorParam}`;
+  }
+};
+
+const searchEngineTool = AiTool.make("searchEngine", {
+  description: `Search the web using Google, Bing, or Yandex with advanced scraping capabilities.
+
+🔍 **PURPOSE**: Get real-time search results from major search engines
+
+🌐 **SUPPORTED ENGINES**:
+• **Google** (default) - Most comprehensive results
+• **Bing** - Microsoft's search engine with unique results
+• **Yandex** - Russian search engine, good for international content
+
+💪 **ADVANCED FEATURES**:
+• Bypasses bot detection and CAPTCHAs automatically
+• Returns clean, structured markdown format
+• Pagination support with cursor parameter
+• Real-time results (not cached)
+
+📋 **OUTPUT FORMAT**: Structured markdown with:
+• Page titles as headers
+• Clean URLs for each result
+• Descriptive snippets and meta information
+• Easy-to-parse format for further processing
+
+🎯 **BEST FOR**: Research, competitive analysis, content discovery, fact-checking, and gathering current information from the web.`,
+  parameters: {
+    query: Schema.String.annotations({
+      description: "The search query to execute",
+    }),
+    engine: Schema.optional(
+      Schema.Literal("google", "bing", "yandex")
+    ).annotations({
+      description: "Search engine to use (default: google)",
+    }),
+    cursor: Schema.optional(Schema.String).annotations({
+      description: "Pagination cursor for next page",
+    }),
+  },
+  success: Schema.Struct({
+    results: Schema.String.annotations({
+      description: "Search results formatted as markdown",
+    }),
+  }),
+});
+
+const scrapeAsMarkdownTool = AiTool.make("scrapeAsMarkdown", {
+  description: `Extract clean, readable content from any webpage with advanced anti-detection capabilities.
+
+📄 **PURPOSE**: Convert any webpage into clean, structured markdown text
+
+🚀 **ADVANCED CAPABILITIES**:
+• **Universal Access**: Bypasses paywalls, bot detection, and CAPTCHAs
+• **Smart Extraction**: Automatically identifies main content vs ads/navigation
+• **Clean Output**: Returns properly formatted markdown text
+• **JavaScript Support**: Handles dynamic content and SPAs
+• **Media Handling**: Preserves images, links, and formatting structure
+
+📋 **OUTPUT FORMAT**: Clean markdown with:
+• Proper heading hierarchy (H1, H2, H3...)
+• Preserved links and image references
+• Readable text formatting (bold, italic, lists)
+• Structured tables and code blocks
+• Removed ads, popups, and navigation clutter
+
+🎯 **PERFECT FOR**:
+• Content research and analysis
+• Documentation extraction
+• Article summarization
+• Data collection from protected sites
+• Converting web content for further processing
+
+⚡ **TIP**: Works on any publicly accessible URL including news sites, blogs, documentation, and social media pages.`,
+  parameters: {
+    url: Schema.String.annotations({
+      description: "The URL to scrape (must be a valid URL)",
+    }),
+  },
+  success: Schema.Struct({
+    content: Schema.String.annotations({
+      description: "Scraped webpage content formatted as markdown",
+    }),
+  }),
+});
+
+export const toolkit = AiToolkit.make(
+  getCurrentDateTool,
+  writeTodoTool,
+  searchEngineTool,
+  scrapeAsMarkdownTool
+);
 
 export const toolKitLayer = toolkit.toLayer({
   getCurrentDate: () => {
@@ -91,5 +200,61 @@ export const toolKitLayer = toolkit.toLayer({
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
       return yield* todoStore.writeTodos([...todos]);
-    }).pipe(Effect.provide(HandlerDependencies)),
+    }).pipe(Effect.provide(TodoStore.Default)),
+
+  searchEngine: ({ query, engine = "google", cursor }) =>
+    Effect.gen(function* () {
+      const httpClient = yield* HttpClient.HttpClient;
+      const brightDataApiKey = yield* Config.string("BRIGHTDATA_API_KEY");
+      const unlockerZone = yield* Config.string("BRIGHTDATA_UNLOCKER_ZONE");
+
+      const targetUrl = searchUrl(engine, query, cursor);
+
+      const request = HttpClientRequest.post(
+        "https://api.brightdata.com/request"
+      ).pipe(
+        HttpClientRequest.setHeader(
+          "Authorization",
+          `Bearer ${brightDataApiKey}`
+        ),
+        HttpClientRequest.setHeader("Content-Type", "application/json"),
+        HttpClientRequest.bodyUnsafeJson({
+          url: targetUrl,
+          zone: unlockerZone,
+          format: "raw",
+          data_format: "markdown",
+        })
+      );
+
+      const response = yield* httpClient.execute(request);
+      const data = yield* response.text;
+      return { results: data };
+    }).pipe(Effect.provide(FetchHttpClient.layer), Effect.orDie),
+
+  scrapeAsMarkdown: ({ url }) =>
+    Effect.gen(function* () {
+      const httpClient = yield* HttpClient.HttpClient;
+      const brightDataApiKey = yield* Config.string("BRIGHTDATA_API_KEY");
+      const unlockerZone = yield* Config.string("BRIGHTDATA_UNLOCKER_ZONE");
+
+      const request = HttpClientRequest.post(
+        "https://api.brightdata.com/request"
+      ).pipe(
+        HttpClientRequest.setHeader(
+          "Authorization",
+          `Bearer ${brightDataApiKey}`
+        ),
+        HttpClientRequest.setHeader("Content-Type", "application/json"),
+        HttpClientRequest.bodyUnsafeJson({
+          url,
+          zone: unlockerZone,
+          format: "raw",
+          data_format: "markdown",
+        })
+      );
+
+      const response = yield* httpClient.execute(request);
+      const data = yield* response.text;
+      return { content: data };
+    }).pipe(Effect.provide(FetchHttpClient.layer), Effect.orDie),
 });
