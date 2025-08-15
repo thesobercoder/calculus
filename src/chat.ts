@@ -62,17 +62,15 @@ export const runChatLoop = Effect.gen(function* () {
     while (response.toolCalls.length > 0) {
       // Display which tools were called (excluding writeTodo)
       // const nonTodoToolCalls = response.toolCalls.filter(
-      //   (call) => call.name !== "writeTodo",
+      //   (call) => call.name !== "writeTodo"
       // );
       // const todoToolCalls = response.toolCalls.filter(
-      //   (call) => call.name === "writeTodo",
+      //   (call) => call.name === "writeTodo"
       // );
       // if (nonTodoToolCalls.length > 0) {
       //   yield* displayToolCalls(nonTodoToolCalls);
-      // }
-
-      // // Check if this response has tool call results
-      // if (todoToolCalls.length > 0 && "results" in response) {
+      // } else if (todoToolCalls.length > 0 && "results" in response) {
+      //   // Check if this response has todo tool call results
       //   // Look for writeTodo results in the response results map
       //   for (const [, { name, result }] of response.results) {
       //     if (
