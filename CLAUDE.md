@@ -14,23 +14,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-**Calculus** is a CLI chatbot built with **EffectTS** and **Bun**. The application follows functional programming patterns with Effect's type-safe abstractions.
+**Calculus** is a CLI chatbot built with **EffectTS** and **Bun** that provides AI conversation with web scraping capabilities. The application follows functional programming patterns with Effect's type-safe abstractions.
 
 ### Core Structure
 
-- **Entry Point**: `src/index.ts` - Main application entry point
+- **Entry Point**: `src/index.ts` - Main application entry point and layer composition
 - **Chat Logic**: `src/chat.ts` - Chat functionality and conversation management
-- **Client Setup**: `src/client.ts` - OpenAI client configuration and setup
+- **Client Setup**: `src/client.ts` - OpenRouter client configuration and setup
+- **AI Tools**: `src/tools.ts` - AI toolkit with web scraping and utility tools
+- **Data Types**: `src/types.ts` - Schema.Class definitions for application data structures
+- **State Management**: `src/stores.ts` - Effect services for state management and domain operations
 - **UI Components**: `src/ui.ts` - Console UI components and formatting
 - **Runtime**: Uses BunRuntime for Effect program execution
-- **AI Integration**: Uses `@effect/ai` with OpenAI-compatible endpoints via `@effect/ai-openai`
+- **AI Integration**: Uses `@effect/ai` with OpenRouter endpoints via `@effect/ai-openai`
 
 ### Key Patterns
 
 - **Effect Composition**: Main logic uses `Effect.gen` for monadic composition
-- **Layer Architecture**: HTTP client, AI model, and OpenAI client are provided as layers
+- **Layer Architecture**: HTTP client, AI model, and OpenRouter client are provided as layers
 - **Configuration**: Environment-based config using `Config.string` and `Config.redacted`
 - **Console UI**: Custom ASCII box formatting with ANSI escape codes for styling
+- **AI Tools**: Custom toolkit with web scraping, search, and utility functions
 
 ### Dependencies
 
@@ -39,11 +43,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Platform**: `@effect/platform` and `@effect/platform-bun` for runtime abstractions
 - **CLI**: `@effect/cli` for command-line interface
 
+### AI Tools
+
+The application includes these AI tools:
+
+- **time**: Returns current date and time
+- **todo**: Manages task lists for progress tracking
+- **search**: Web search via BrightData (Google, Bing, Yandex)
+- **fetch**: Web page content extraction to markdown
+
 ### Configuration
 
 The app expects these environment variables:
 
-- `OPENAI_BASE_URL` - API endpoint URL
-- `OPENAI_API_KEY` - API authentication key
+- `OPENROUTER_API_KEY` - OpenRouter API authentication key
+- `BRIGHTDATA_API_KEY` - BrightData API key for web scraping
+- `BRIGHTDATA_UNLOCKER_ZONE` - BrightData zone identifier
 
-The default model is configured as "google/gemini-2.5-flash" with temperature 0.5.
+The OpenRouter endpoint is hardcoded to `https://openrouter.ai/api/v1` and the default model is configured as `anthropic/claude-sonnet-4` with temperature 0.5.
+
+## Web Intelligence
+
+The application integrates with BrightData for advanced web scraping capabilities:
+
+- **Search Engine Access**: Query Google, Bing, and Yandex through proxy networks
+- **Content Extraction**: Convert web pages to clean markdown format
+- **Anti-Detection**: Bypass bot detection and access protected content
+- **Global Network**: Enterprise-grade proxy infrastructure
+
+## State Management
+
+Uses Effect services with `Effect.Ref` for fiber-safe state management:
+
+- **TodoStore**: Manages task lists with CRUD operations
+- **Centralized Dependencies**: Layer-based dependency injection
+- **Type Safety**: Schema validation for all data structures

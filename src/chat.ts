@@ -90,7 +90,7 @@ export const runChatLoop = Effect.gen(function* () {
             for (const [, { name, result }] of response.results) {
               if (name === "time" && result && "datetime" in result) {
                 yield* Console.info(
-                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`
+                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`,
                 );
               }
             }
@@ -99,7 +99,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "search": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`
+              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`,
             );
             for (const [, { name, result }] of response.results) {
               if (name === "search" && result && "results" in result) {
@@ -112,7 +112,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "fetch": {
             const params = call.params as { url: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`
+              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`,
             );
             for (const [, { name, result }] of response.results) {
               if (name === "fetch" && result && "content" in result) {
