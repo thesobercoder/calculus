@@ -1,8 +1,9 @@
 import { AiChat } from "@effect/ai";
 import { Prompt } from "@effect/cli";
 import { Console, Effect } from "effect";
+import { TodoItem } from "./schemas.js";
 import { toolkit } from "./tools.js";
-import { formatAssistantResponse } from "./ui.js";
+import { formatAssistantResponse, displayTodoList } from "./ui.js";
 
 const createChat = Effect.gen(function* () {
   return yield* AiChat.fromPrompt({
@@ -13,24 +14,30 @@ const createChat = Effect.gen(function* () {
       `User's current location is Kolkata, West Bengal, India`,
       `Always respond with keeping the current locale in mind`,
       "You have access to tools. Use them intelligently to answer the user's questions",
-      "<todo>",
-      "Todo List Display Rules:",
-      "1. Always display the current todo list in this EXACT format when todos exist:",
-      "⏺ [Batch Title/Description]",
-      "  ⎿  ☐ [todo content] (for pending/in_progress status)",
-      "     ☒ [todo content] (for completed status)",
-      "2. Use ☐ for pending and in_progress todos, ☒ for completed todos.",
-      "3. If no todos exist, don't show any todo list.",
-      "4. IMPORTANT: Display ONLY the todo list format - no additional text, explanations, or confirmations when showing todos.",
-      "</todo>",
+      "",
+      "IMPORTANT: When the user gives you a task to perform, ALWAYS use the writeTodo tool first to break down the task into manageable steps.",
+      "Examples of when to use writeTodo:",
+      "- User asks to implement a feature",
+      "- User requests debugging or fixing issues",
+      "- User wants to refactor code",
+      "- Any multi-step task that requires planning",
+      "",
+      "Use the writeTodo tool to:",
+      "1. Break complex tasks into smaller, actionable steps",
+      "2. Track your progress through the task",
+      "3. Ensure you don't miss any important steps",
+      "4. Keep the user informed of what you're working on",
+      "",
+      "Update todo status as you work:",
+      "- 'pending': Not started yet",
+      "- 'in_progress': Currently working on this step",
+      "- 'completed': Step is finished",
     ].join("\n"),
   });
 });
 
-const isExitCommand = (input: string): boolean => {
-  const trimmed = input.trim().toLowerCase();
-  return trimmed === "exit" || trimmed === "quit";
-};
+const isExitCommand = (input: string): boolean =>
+  ["exit", "quit"].includes(input.trim().toLowerCase());
 
 export const runChatLoop = Effect.gen(function* () {
   const chat = yield* createChat;
@@ -50,7 +57,31 @@ export const runChatLoop = Effect.gen(function* () {
     });
 
     if (response.toolCalls.length > 0) {
-      // Tool calls were made, generate follow-up response
+      // Check if any tool calls were todo-related and if we have results
+      const hasTodoCall = response.toolCalls.some(
+        (call) => call.name === "writeTodo",
+      );
+
+      // After getting results, check for todo call results
+      if (hasTodoCall && "results" in response) {
+        // Look for writeTodo results in the response results map
+        for (const [, { name, result }] of response.results) {
+          if (
+            name === "writeTodo" &&
+            result &&
+            typeof result === "object" &&
+            "todos" in result
+          ) {
+            const todoResult = result as {
+              todos: readonly TodoItem[];
+              message?: string;
+            };
+            yield* displayTodoList(todoResult.todos, todoResult.message);
+          }
+        }
+      }
+
+      // Tool calls were made, generate follow-up response to get results
       response = yield* chat.generateText({
         prompt: [],
         toolkit: toolkit,

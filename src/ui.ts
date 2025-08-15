@@ -1,4 +1,5 @@
 import { Console, Effect } from "effect";
+import { TodoItem } from "./schemas.js";
 
 const BOX_WIDTH = 62;
 
@@ -32,4 +33,20 @@ export const showWelcomeBox = Effect.gen(function* () {
 });
 
 export const formatAssistantResponse = (text: string): string =>
-  `\x1b[32m✔\x1b[0m Assistant: ${text.trim()}`;
+  `\n\x1b[32m✔\x1b[0m Assistant: ${text.trim()}\n`;
+
+export const displayTodoList = (todos: readonly TodoItem[], message?: string) =>
+  Effect.gen(function* () {
+    if (todos.length > 0) {
+      yield* Console.info("\n\u001b[32m⏺\u001b[0m Update Todos:");
+      for (let i = 0; i < todos.length; i++) {
+        const todo = todos[i]!;
+        const status = todo.status === "completed" ? "☒" : "☐";
+        const prefix = i === 0 ? "  ⎿  " : "     ";
+        yield* Console.info(`${prefix}${status} ${todo.content}`);
+      }
+      if (message) {
+        yield* Console.info(`\n${message}`);
+      }
+    }
+  });
