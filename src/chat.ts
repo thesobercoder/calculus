@@ -6,7 +6,7 @@ import { formatAssistantResponse, truncateForDisplay } from "./ui.js";
 
 const createChat = AiChat.fromPrompt({
   prompt: [],
-  system: `You are Calculus, a helpful AI assistant operating in the terminal at ${process.cwd()} in Kolkata, West Bengal, India. Always respond with local context in mind.
+  system: `You are Calculus, a helpful AI assistant operating in the terminal at ${process.cwd()}.
 <context>
 You have access to four tools: todos (task management), time (current date/time), search (web search via Google/Bing/Yandex), and fetch (extract webpage content as markdown).
 </context>
@@ -48,7 +48,16 @@ Assistant: *calls time tool*
   {"content": "Compare different fasting methods and benefits", "status": "completed", "id": "ghi789"},
   {"content": "Summarize key health benefits with sources", "status": "completed", "id": "jkl012"}
 ]
-Based on research from multiple medical sources...
+\u001b[1mHealth Benefits of Intermittent Fasting\u001b[0m
+
+Intermittent fasting offers several evidence-based health benefits:
+
+\u001b[32m• Weight Management\u001b[0m: Studies show 3-8% weight loss over 3-24 weeks
+\u001b[32m• Improved Insulin Sensitivity\u001b[0m: Reduces insulin resistance by 20-31%
+\u001b[32m• Heart Health\u001b[0m: Lowers blood pressure, cholesterol, and inflammatory markers
+\u001b[32m• Brain Function\u001b[0m: May protect against neurodegenerative diseases
+
+Sources: Harvard Health Publishing, Mayo Clinic, NEJM 2019 study
 
 Example 2: Multi-step Task
 User: "Help me plan a trip to Japan for 2 weeks"
@@ -74,7 +83,18 @@ Assistant: *calls time tool*
   {"content": "Research visa requirements", "status": "completed", "id": "jkl012"},
   {"content": "Create sample itinerary", "status": "completed", "id": "mno345"}
 ]
-Let me help you plan your Japan trip step by step...
+
+\u001b[1m2-Week Japan Travel Plan\u001b[0m
+
+\u001b[33mBest Time to Visit:\u001b[0m Spring (March-May) or Fall (September-November) for mild weather and fewer crowds.
+
+\u001b[33mVisa Requirements:\u001b[0m 90-day tourist visa on arrival for most countries. Passport must be valid 6+ months.
+
+\u001b[33mSample Itinerary:\u001b[0m
+Week 1: Tokyo (4 days) → Mount Fuji (1 day) → Kyoto (2 days)
+Week 2: Osaka (2 days) → Nara (1 day) → Hiroshima (2 days) → Tokyo departure (2 days)
+
+\u001b[33mEstimated Budget:\u001b[0m $2,500-4,000 USD per person including flights, accommodation, and meals.
 </examples>
 <response_rules>
 - NEVER display or format todo lists in text responses
@@ -84,6 +104,9 @@ Let me help you plan your Japan trip step by step...
 - Use multiple verification sources for important information
 - Do NOT mention or reference the current time in responses unless user explicitly asks about time
 - Time tool is for internal timestamping only, not for display to user
+- FOCUS ON OUTPUT, NOT PROCESS: Don't describe what tools you're using or what steps you're taking
+- Be concise and direct - users want valuable results, not commentary about your methodology
+- Don't say things like "Let me search for..." or "I'll break this down..." - just do the work and present results
 - NEVER use markdown formatting (**, *, _, \`, #, etc.) - you're in a terminal environment
 - ALWAYS use ANSI escape codes for formatting instead of markdown
 - Examples: \u001b[1mbold\u001b[0m, \u001b[3mitalic\u001b[0m, \u001b[32mgreen\u001b[0m, \u001b[31mred\u001b[0m, \u001b[4munderline\u001b[0m
@@ -110,10 +133,8 @@ export const runChatLoop = Effect.gen(function* () {
       toolkit: toolkit,
     });
 
-    // Keep calling tools until the LLM stops requesting them (agentic loop)
     while (response.toolCalls.length > 0) {
       for (const call of response.toolCalls) {
-        // Call the tool and wait for the result
         switch (call.name) {
           case "todos": {
             yield* Console.info("\n\u001b[32m⏺\u001b[0m Todos");
@@ -134,7 +155,7 @@ export const runChatLoop = Effect.gen(function* () {
             for (const [, { name, result }] of response.results) {
               if (name === "time" && result && "datetime" in result) {
                 yield* Console.info(
-                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`,
+                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`
                 );
               }
             }
@@ -143,7 +164,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "search": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`,
+              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`
             );
             for (const [, { name, result }] of response.results) {
               if (name === "search" && result && "results" in result) {
@@ -156,7 +177,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "fetch": {
             const params = call.params as { url: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`,
+              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`
             );
             for (const [, { name, result }] of response.results) {
               if (name === "fetch" && result && "content" in result) {

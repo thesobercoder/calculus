@@ -39,7 +39,7 @@ UI displays todos automatically - don't format in response.`,
         status: Schema.Literal(
           "pending",
           "in_progress",
-          "completed",
+          "completed"
         ).annotations({
           description:
             "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
@@ -51,7 +51,7 @@ UI displays todos automatically - don't format in response.`,
       }).annotations({
         description:
           "A single todo item with content, status, and optional ID for updates",
-      }),
+      })
     ).annotations({
       description:
         "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
@@ -64,11 +64,10 @@ UI displays todos automatically - don't format in response.`,
   }),
 });
 
-// Helper functions for BrightData API
 const searchUrl = (
   engine: string,
   query: string,
-  cursor?: string | null,
+  cursor: string | null
 ): string => {
   const encodedQuery = encodeURIComponent(query);
   const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
@@ -86,21 +85,14 @@ const searchUrl = (
 };
 
 const searchTool = AiTool.make("search", {
-  description: `Search the web using Google, Bing, or Yandex via BrightData proxy.
-Returns search result links and snippets, NOT full page content.
-Input: {query: string, engine?: 'google'|'bing'|'yandex', cursor?: string}
-Engine defaults to 'google'. Use cursor for pagination.
-Output: markdown formatted results with titles, URLs, and snippets.
-IMPORTANT: Use 'fetch' tool with returned URLs to get actual page content.
-Typical workflow: search for pages, then fetch specific URLs for full content.`,
+  description:
+    "Search the web using Google, Bing, or Yandex. Returns search result links and snippets.",
   parameters: {
     query: Schema.String.annotations({
       description: "The search query to execute",
     }),
-    engine: Schema.NullOr(
-      Schema.Literal("google", "bing", "yandex"),
-    ).annotations({
-      description: "Search engine to use (default: google)",
+    engine: Schema.Literal("google", "bing", "yandex").annotations({
+      description: "Search engine to use (recommended: google)",
     }),
     cursor: Schema.NullOr(Schema.String).annotations({
       description: "Pagination cursor for next page",
@@ -114,13 +106,8 @@ Typical workflow: search for pages, then fetch specific URLs for full content.`,
 });
 
 const fetchTool = AiTool.make("fetch", {
-  description: `Extract clean webpage content as markdown via BrightData proxy.
-Bypasses paywalls, bot detection, and CAPTCHAs with enterprise proxy network.
-Input: {url: string} - must be valid HTTP/HTTPS URL
-Output: {content: string} - clean markdown with headings, links, images, tables
-Automatically removes ads, navigation, and clutter - preserves main content only.
-Supports dynamic content, SPAs, and JavaScript-rendered pages.
-Use for content research, documentation extraction, and data collection.`,
+  description:
+    "Extract webpage content as clean markdown. Input: valid URL. Output: markdown content.",
   parameters: {
     url: Schema.String.annotations({
       description: "The URL to scrape (must be a valid URL)",
@@ -137,7 +124,7 @@ export const toolkit = AiToolkit.make(
   timeTool,
   writeTodoTool,
   searchTool,
-  fetchTool,
+  fetchTool
 );
 
 export const toolKitLayer = toolkit.toLayer({
@@ -148,11 +135,10 @@ export const toolKitLayer = toolkit.toLayer({
   todos: ({ todos }) =>
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
-      // Filter out null IDs to match expected type
       const processedTodos = todos.map((todo) => ({
         content: todo.content,
         status: todo.status,
-        ...(todo.id && { id: todo.id }),
+        ...(todo.id && todo.id.length > 0 && { id: todo.id }),
       }));
       return yield* todoStore.writeTodos([...processedTodos]);
     }).pipe(Effect.provide(TodoStore.Default)),
@@ -167,11 +153,11 @@ export const toolKitLayer = toolkit.toLayer({
       const targetUrl = searchUrl(safeEngine, query, cursor);
 
       const request = HttpClientRequest.post(
-        "https://api.brightdata.com/request",
+        "https://api.brightdata.com/request"
       ).pipe(
         HttpClientRequest.setHeader(
           "Authorization",
-          `Bearer ${brightDataApiKey}`,
+          `Bearer ${brightDataApiKey}`
         ),
         HttpClientRequest.setHeader("Content-Type", "application/json"),
         HttpClientRequest.bodyUnsafeJson({
@@ -179,7 +165,7 @@ export const toolKitLayer = toolkit.toLayer({
           zone: unlockerZone,
           format: "raw",
           data_format: "markdown",
-        }),
+        })
       );
 
       const response = yield* httpClient.execute(request);
@@ -194,11 +180,11 @@ export const toolKitLayer = toolkit.toLayer({
       const unlockerZone = yield* Config.string("BRIGHTDATA_UNLOCKER_ZONE");
 
       const request = HttpClientRequest.post(
-        "https://api.brightdata.com/request",
+        "https://api.brightdata.com/request"
       ).pipe(
         HttpClientRequest.setHeader(
           "Authorization",
-          `Bearer ${brightDataApiKey}`,
+          `Bearer ${brightDataApiKey}`
         ),
         HttpClientRequest.setHeader("Content-Type", "application/json"),
         HttpClientRequest.bodyUnsafeJson({
@@ -206,7 +192,7 @@ export const toolKitLayer = toolkit.toLayer({
           zone: unlockerZone,
           format: "raw",
           data_format: "markdown",
-        }),
+        })
       );
 
       const response = yield* httpClient.execute(request);
