@@ -22,7 +22,7 @@ Returns localized date/time string (e.g., "12/25/2024, 3:30:45 PM").`,
   }),
 });
 
-const writeTodoTool = AiTool.make("todo", {
+const writeTodoTool = AiTool.make("todos", {
   description: `Manage task planning and progress tracking.
 Use for breaking down complex work, project planning, and tracking implementation progress.
 Input: array of todos with {content: string, status: 'pending'|'in_progress'|'completed', id?: string}
@@ -145,7 +145,7 @@ export const toolKitLayer = toolkit.toLayer({
     return Effect.succeed({ datetime: new Date().toLocaleString() });
   },
 
-  todo: ({ todos }) =>
+  todos: ({ todos }) =>
     Effect.gen(function* () {
       const todoStore = yield* TodoStore;
       // Filter out null IDs to match expected type
