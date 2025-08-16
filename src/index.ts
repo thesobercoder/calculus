@@ -1,12 +1,13 @@
 import { FetchHttpClient } from "@effect/platform";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
-import { Effect, Layer } from "effect";
+import { Console, Effect, Layer } from "effect";
 import { runChatLoop } from "./chat.js";
 import { ClientLayer, ModelLayer } from "./client.js";
 import { toolKitLayer } from "./tools.js";
 import { showWelcomeBox } from "./ui.js";
 
 const main = Effect.gen(function* () {
+  yield* Console.clear;
   yield* showWelcomeBox;
   yield* runChatLoop;
 });

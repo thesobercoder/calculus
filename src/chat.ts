@@ -2,7 +2,11 @@ import { AiChat } from "@effect/ai";
 import { Prompt } from "@effect/cli";
 import { Console, Effect } from "effect";
 import { toolkit } from "./tools.js";
-import { formatAssistantResponse, truncateForDisplay } from "./ui.js";
+import {
+  formatAssistantResponse,
+  showWelcomeBox,
+  truncateForDisplay,
+} from "./ui.js";
 
 const createChat = AiChat.fromPrompt({
   prompt: [],
@@ -116,8 +120,28 @@ Week 2: Osaka (2 days) → Nara (1 day) → Hiroshima (2 days) → Tokyo departu
 const isExitCommand = (input: string): boolean =>
   ["exit", "quit"].includes(input.trim().toLowerCase());
 
+const isClearCommand = (input: string): boolean =>
+  ["clear"].includes(input.trim().toLowerCase());
+
+const isHelpCommand = (input: string): boolean =>
+  ["help", "?"].includes(input.trim().toLowerCase());
+
+const showHelp = () => {
+  console.log("\n\u001b[1mCommands:\u001b[0m");
+  console.log(
+    "  \u001b[32mhelp\u001b[0m or \u001b[32m?\u001b[0m    - Show this help message",
+  );
+  console.log(
+    "  \u001b[32mclear\u001b[0m         - Clear conversation history (start fresh)",
+  );
+  console.log(
+    "  \u001b[32mquit\u001b[0m or \u001b[32mexit\u001b[0m - Exit the application",
+  );
+  console.log();
+};
+
 export const runChatLoop = Effect.gen(function* () {
-  const chat = yield* createChat;
+  let chat = yield* createChat;
 
   while (true) {
     const input = yield* Prompt.text({
@@ -126,6 +150,18 @@ export const runChatLoop = Effect.gen(function* () {
 
     if (isExitCommand(input)) {
       break;
+    }
+
+    if (isClearCommand(input)) {
+      yield* Console.clear;
+      yield* showWelcomeBox;
+      chat = yield* createChat;
+      continue;
+    }
+
+    if (isHelpCommand(input)) {
+      showHelp();
+      continue;
     }
 
     let response = yield* chat.generateText({
@@ -155,7 +191,7 @@ export const runChatLoop = Effect.gen(function* () {
             for (const [, { name, result }] of response.results) {
               if (name === "time" && result && "datetime" in result) {
                 yield* Console.info(
-                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`
+                  `  ⎿  \u001b[2m${result.datetime}\u001b[0m`,
                 );
               }
             }
@@ -164,7 +200,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "search": {
             const searchParams = call.params as { query: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`
+              `\n\u001b[32m⏺\u001b[0m Search (query: "${searchParams.query}")`,
             );
             for (const [, { name, result }] of response.results) {
               if (name === "search" && result && "results" in result) {
@@ -177,7 +213,7 @@ export const runChatLoop = Effect.gen(function* () {
           case "fetch": {
             const params = call.params as { url: string };
             yield* Console.info(
-              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`
+              `\n\u001b[32m⏺\u001b[0m Fetch (url: "${params.url}")`,
             );
             for (const [, { name, result }] of response.results) {
               if (name === "fetch" && result && "content" in result) {

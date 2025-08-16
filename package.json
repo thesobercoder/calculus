@@ -26,6 +26,7 @@
     "build": "bun build src/index.ts --outdir dist --target bun --minify",
     "dev": "bun run src/index.ts",
     "format": "syncpack format && prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "start": "bun run build && bun run dist/index.js",

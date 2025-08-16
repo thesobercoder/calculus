@@ -39,7 +39,7 @@ UI displays todos automatically - don't format in response.`,
         status: Schema.Literal(
           "pending",
           "in_progress",
-          "completed"
+          "completed",
         ).annotations({
           description:
             "Task status: 'pending' (not started), 'in_progress' (currently working), 'completed' (finished)",
@@ -51,7 +51,7 @@ UI displays todos automatically - don't format in response.`,
       }).annotations({
         description:
           "A single todo item with content, status, and optional ID for updates",
-      })
+      }),
     ).annotations({
       description:
         "Array of todo items. This replaces the entire current batch - include all todos you want to keep",
@@ -67,7 +67,7 @@ UI displays todos automatically - don't format in response.`,
 const searchUrl = (
   engine: string,
   query: string,
-  cursor: string | null
+  cursor: string | null,
 ): string => {
   const encodedQuery = encodeURIComponent(query);
   const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
@@ -124,7 +124,7 @@ export const toolkit = AiToolkit.make(
   timeTool,
   writeTodoTool,
   searchTool,
-  fetchTool
+  fetchTool,
 );
 
 export const toolKitLayer = toolkit.toLayer({
@@ -153,11 +153,11 @@ export const toolKitLayer = toolkit.toLayer({
       const targetUrl = searchUrl(safeEngine, query, cursor);
 
       const request = HttpClientRequest.post(
-        "https://api.brightdata.com/request"
+        "https://api.brightdata.com/request",
       ).pipe(
         HttpClientRequest.setHeader(
           "Authorization",
-          `Bearer ${brightDataApiKey}`
+          `Bearer ${brightDataApiKey}`,
         ),
         HttpClientRequest.setHeader("Content-Type", "application/json"),
         HttpClientRequest.bodyUnsafeJson({
@@ -165,7 +165,7 @@ export const toolKitLayer = toolkit.toLayer({
           zone: unlockerZone,
           format: "raw",
           data_format: "markdown",
-        })
+        }),
       );
 
       const response = yield* httpClient.execute(request);
@@ -180,11 +180,11 @@ export const toolKitLayer = toolkit.toLayer({
       const unlockerZone = yield* Config.string("BRIGHTDATA_UNLOCKER_ZONE");
 
       const request = HttpClientRequest.post(
-        "https://api.brightdata.com/request"
+        "https://api.brightdata.com/request",
       ).pipe(
         HttpClientRequest.setHeader(
           "Authorization",
-          `Bearer ${brightDataApiKey}`
+          `Bearer ${brightDataApiKey}`,
         ),
         HttpClientRequest.setHeader("Content-Type", "application/json"),
         HttpClientRequest.bodyUnsafeJson({
@@ -192,7 +192,7 @@ export const toolKitLayer = toolkit.toLayer({
           zone: unlockerZone,
           format: "raw",
           data_format: "markdown",
-        })
+        }),
       );
 
       const response = yield* httpClient.execute(request);
