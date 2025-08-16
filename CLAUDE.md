@@ -47,8 +47,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The application includes these AI tools:
 
-- **time**: Returns current date and time
-- **todo**: Manages task lists for progress tracking
+- **clock**: Returns current date and time with customizable formatting ('short', 'long', 'iso')
+- **todos**: Manages task lists for progress tracking and project planning
 - **search**: Web search via BrightData (Google, Bing, Yandex)
 - **fetch**: Web page content extraction to markdown
 

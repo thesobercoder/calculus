@@ -65,13 +65,17 @@ bun run start
 
 The chatbot includes these tools:
 
-### time
+### clock
 
-Returns current date and time.
+Returns current date and time with customizable formatting options:
 
-### todo
+- `short`: Localized format (e.g., "8/16/2025, 3:57:12 PM")
+- `long`: Full format (e.g., "Friday, August 16, 2025 at 03:57:12 PM")
+- `iso`: ISO 8601 format (e.g., "2025-08-16T20:57:12.345Z")
 
-Manages task lists for tracking progress on multi-step work.
+### todos
+
+Manages task lists for tracking progress on multi-step work and project planning.
 
 ### search
 
