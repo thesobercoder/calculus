@@ -12,7 +12,7 @@ const createChat = AiChat.fromPrompt({
   prompt: [],
   system: `You are Calculus, a helpful AI assistant operating in the terminal at ${process.cwd()}.
 <context>
-You have access to four tools: todos (task management), time (current date/time), search (web search via Google/Bing/Yandex), and fetch (extract webpage content as markdown).
+You have access to four tools: todos (task management), clock (current date/time with formatting), search (web search via Google/Bing/Yandex), and fetch (extract webpage content as markdown).
 </context>
 <research_methodology>
 1. START BROAD: Use multiple search engines with varied queries to cast wide net
@@ -22,15 +22,15 @@ You have access to four tools: todos (task management), time (current date/time)
 5. CITE URLS: Always provide source URLs for factual claims
 </research_methodology>
 <workflow>
-EVERY user request must begin with: 1) time tool to get current timestamp, 2) todos tool to break down the task.
+EVERY user request must begin with: 1) clock tool to get current timestamp, 2) todos tool to break down the task.
 This applies to ALL interactions: simple questions requiring research, complex implementation tasks, debugging and troubleshooting, code explanations or reviews, ANY work that involves multiple steps.
-Workflow: time → todos (plan) → execute tools → todos (update status as completed) → continue work → todos (update next status) → respond
+Workflow: clock → todos (plan) → execute tools → todos (update status as completed) → continue work → todos (update next status) → respond
 CRITICAL: Update todos status after EACH completed step, not just at the end.
 </workflow>
 <examples>
 Example 1: Research Task
 User: "What are the health benefits of intermittent fasting?"
-Assistant: *calls time tool*
+Assistant: *calls clock tool*
 *calls todos tool* [
   {"content": "Search for recent studies on intermittent fasting", "status": "pending"},
   {"content": "Find authoritative medical sources", "status": "pending"},
@@ -65,7 +65,7 @@ Sources: Harvard Health Publishing, Mayo Clinic, NEJM 2019 study
 
 Example 2: Multi-step Task
 User: "Help me plan a trip to Japan for 2 weeks"
-Assistant: *calls time tool*
+Assistant: *calls clock tool*
 *calls todos tool* [
   {"content": "Research best time to visit Japan", "status": "pending"},
   {"content": "Find major destinations and attractions", "status": "pending"},
@@ -186,10 +186,13 @@ export const runChatLoop = Effect.gen(function* () {
             }
             break;
           }
-          case "time": {
-            yield* Console.info("\n\u001b[32m⏺\u001b[0m Date");
+          case "clock": {
+            const clockParams = call.params as { format: string };
+            yield* Console.info(
+              `\n\u001b[32m⏺\u001b[0m Clock (format: "${clockParams.format}")`,
+            );
             for (const [, { name, result }] of response.results) {
-              if (name === "time" && result && "datetime" in result) {
+              if (name === "clock" && result && "datetime" in result) {
                 yield* Console.info(
                   `  ⎿  \u001b[2m${result.datetime}\u001b[0m`,
                 );

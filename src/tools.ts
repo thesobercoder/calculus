@@ -8,12 +8,19 @@ import { Config, Effect, Schema } from "effect";
 import { TodoStore } from "./stores.js";
 import { TodoItem } from "./types.js";
 
-const timeTool = AiTool.make("time", {
-  description: `Get the current date and time in user's local timezone.
+const clockTool = AiTool.make("clock", {
+  description: `Get the current date and time in user's local timezone with customizable formatting.
 Use when you need current timestamp, scheduling, or time-based operations.
-No parameters required.
-Returns localized date/time string (e.g., "12/25/2024, 3:30:45 PM").`,
-  parameters: {},
+REQUIRED: Must specify format parameter ('short', 'long', or 'iso').
+Format options:
+- 'short': Localized format like "8/16/2025, 3:57:12 PM"
+- 'long': Full format like "Friday, August 16, 2025 at 03:57:12 PM"
+- 'iso': ISO 8601 format like "2025-08-16T20:57:12.345Z"`,
+  parameters: {
+    format: Schema.Literal("short", "long", "iso").annotations({
+      description: "Time format: 'short', 'long', or 'iso'",
+    }),
+  },
   success: Schema.Struct({
     datetime: Schema.String.annotations({
       description:
@@ -22,7 +29,7 @@ Returns localized date/time string (e.g., "12/25/2024, 3:30:45 PM").`,
   }),
 });
 
-const writeTodoTool = AiTool.make("todos", {
+const todoTool = AiTool.make("todos", {
   description: `Manage task planning and progress tracking.
 Use for breaking down complex work, project planning, and tracking implementation progress.
 Input: array of todos with {content: string, status: 'pending'|'in_progress'|'completed', id?: string}
@@ -121,15 +128,39 @@ const fetchTool = AiTool.make("fetch", {
 });
 
 export const toolkit = AiToolkit.make(
-  timeTool,
-  writeTodoTool,
+  clockTool,
+  todoTool,
   searchTool,
   fetchTool,
 );
 
 export const toolKitLayer = toolkit.toLayer({
-  time: () => {
-    return Effect.succeed({ datetime: new Date().toLocaleString() });
+  clock: ({ format }) => {
+    const now = new Date();
+    let datetime: string;
+
+    switch (format) {
+      case "long":
+        datetime = now.toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        break;
+      case "iso":
+        datetime = now.toISOString();
+        break;
+      case "short":
+      default:
+        datetime = now.toLocaleString();
+        break;
+    }
+
+    return Effect.succeed({ datetime });
   },
 
   todos: ({ todos }) =>

@@ -21,7 +21,7 @@ export const ClientLayer = OpenAiClient.layerConfig({
 });
 
 export const ModelLayer = OpenAiLanguageModel.layer({
-  model: "openai/o3",
+  model: "anthropic/claude-sonnet-4",
   config: {
     temperature: 0.3,
     reasoning_effort: "medium",
