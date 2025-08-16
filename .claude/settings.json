@@ -17,15 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun run lint"
-          },
-          {
-            "type": "command",
-            "command": "bun run typecheck"
-          },
-          {
-            "type": "command",
-            "command": "bun run format"
+            "command": "bun run lint && bun run typecheck && bun run format"
           }
         ]
       }

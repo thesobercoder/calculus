@@ -12,11 +12,11 @@ export const ClientLayer = OpenAiClient.layerConfig({
         request.pipe(
           HttpClientRequest.setHeader(
             "HTTP-Referer",
-            "https://thesobercoder.in"
+            "https://thesobercoder.in",
           ),
-          HttpClientRequest.setHeader("X-Title", "Calculus")
-        )
-      )
+          HttpClientRequest.setHeader("X-Title", "Calculus"),
+        ),
+      ),
     ),
 });
 
