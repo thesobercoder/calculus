@@ -31,5 +31,25 @@ export const showWelcomeBox = Effect.gen(function* () {
   yield* Console.log("");
 });
 
+export const truncateForDisplay = (
+  text: string,
+  maxLength: number = 80,
+): string => {
+  const trimmed = text.trim();
+  const firstNewline = trimmed.indexOf("\n");
+
+  if (firstNewline === -1) {
+    // No newline found, truncate at maxLength
+    return trimmed.length > maxLength
+      ? trimmed.substring(0, maxLength) + "..."
+      : trimmed;
+  }
+
+  const beforeNewline = trimmed.substring(0, firstNewline);
+  return beforeNewline.length > maxLength
+    ? beforeNewline.substring(0, maxLength) + "..."
+    : beforeNewline;
+};
+
 export const formatAssistantResponse = (text: string): string =>
   `\n\x1b[32m✔\x1b[0m Assistant: ${text.trim()}\n`;
