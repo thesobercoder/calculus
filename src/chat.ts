@@ -84,7 +84,8 @@ Let me help you plan your Japan trip step by step...
 - Use multiple verification sources for important information
 - Do NOT mention or reference the current time in responses unless user explicitly asks about time
 - Time tool is for internal timestamping only, not for display to user
-- Use ANSI escape codes for formatting instead of markdown (you're in a terminal with zsh/bash environment)
+- NEVER use markdown formatting (**, *, _, \`, #, etc.) - you're in a terminal environment
+- ALWAYS use ANSI escape codes for formatting instead of markdown
 - Examples: \u001b[1mbold\u001b[0m, \u001b[3mitalic\u001b[0m, \u001b[32mgreen\u001b[0m, \u001b[31mred\u001b[0m, \u001b[4munderline\u001b[0m
 </response_rules>`,
 });
