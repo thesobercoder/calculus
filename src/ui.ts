@@ -51,5 +51,10 @@ export const truncateForDisplay = (
     : beforeNewline;
 };
 
+function processEscapeSequences(text: string): string {
+  // Convert literal \x1b sequences to actual escape characters
+  return text.replace(/\\x1b/g, "\x1b");
+}
+
 export const formatAssistantResponse = (text: string): string =>
-  `\n\x1b[32m✔\x1b[0m Assistant: ${text.trim()}\n`;
+  `\n\x1b[32m✔\x1b[0m Assistant: ${processEscapeSequences(text.trim())}\n`;
