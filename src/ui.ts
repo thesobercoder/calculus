@@ -57,4 +57,4 @@ function processEscapeSequences(text: string): string {
 }
 
 export const formatAssistantResponse = (text: string): string =>
-  `\n\x1b[32m✔\x1b[0m Assistant: ${processEscapeSequences(text.trim())}\n`;
+  `\n\x1b[32m✔\x1b[0m Calculus: ${processEscapeSequences(text.trim())}\n`;

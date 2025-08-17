@@ -171,7 +171,7 @@ export const runChatLoop = Effect.gen(function* () {
 
   while (true) {
     const input = yield* Prompt.text({
-      message: "User:",
+      message: "You:",
     });
 
     if (isExitCommand(input)) {
