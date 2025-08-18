@@ -1,6 +1,5 @@
 import { Effect, Schema } from "effect";
 
-// Todo data structure (matches TodoWrite tool format)
 export class TodoItem extends Schema.Class<TodoItem>("TodoItem")({
   content: Schema.String,
   status: Schema.Literal("pending", "in_progress", "completed"),

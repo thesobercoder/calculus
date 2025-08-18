@@ -1,5 +1,4 @@
-import { OpenAiClient } from "@effect/ai-openai";
-import * as OpenAiLanguageModel from "@effect/ai-openai/OpenAiLanguageModel";
+import { OpenAiClient, OpenAiLanguageModel } from "@effect/ai-openai";
 import { HttpClient, HttpClientRequest } from "@effect/platform";
 import { Config } from "effect";
 

@@ -12,24 +12,14 @@ const main = Effect.gen(function* () {
   yield* runChatLoop;
 });
 
-// Close ClientLayer over its dependency (HttpClient)
-const ClientLive = ClientLayer.pipe(
-  Layer.provide(FetchHttpClient.layer), // now R = never for ClientLive
-);
-
-// ModelLayer depends on OpenAiClient, which ClientLive provides
-const ModelLive = ModelLayer.pipe(
-  Layer.provide(ClientLive), // R = never as well
-);
-
-// Build the full application layer graph
+const ClientLive = ClientLayer.pipe(Layer.provide(FetchHttpClient.layer));
+const ModelLive = ModelLayer.pipe(Layer.provide(ClientLive));
 const AppLayer = Layer.mergeAll(
-  toolKitLayer, // already self-contained (handlers closed over TodoStore)
-  ModelLive, // provides Model service, no deps
-  ClientLive, // provides OpenAiClient, no deps
-  FetchHttpClient.layer, // still export HttpClient so others can use it
+  toolKitLayer,
+  ModelLive,
+  ClientLive,
+  FetchHttpClient.layer,
   BunContext.layer,
 );
 
-// Supply the layer once and run the program
 main.pipe(Effect.provide(AppLayer), BunRuntime.runMain);
