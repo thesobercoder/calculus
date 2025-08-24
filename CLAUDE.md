@@ -78,3 +78,34 @@ Uses Effect services with `Effect.Ref` for fiber-safe state management:
 - **TodoStore**: Manages task lists with CRUD operations
 - **Centralized Dependencies**: Layer-based dependency injection
 - **Type Safety**: Schema validation for all data structures
+
+## Feature Planning & Task Management
+
+### Hierarchical Task Structure
+
+When planning features and creating tasks, ALWAYS use hierarchical structure:
+
+- **Parent Feature Task**: High-level business context with clear acceptance criteria
+  - Example: "Implement Claude Tool Integration for AI Agent"
+  - Captures business value, scope, and overall outcome
+  - Acts as umbrella for all implementation work
+
+- **Sub-tasks**: Atomic implementation work organized under parent
+  - Example: "012.01 - Design Claude tool schema and interface"
+  - Individual deliverables that roll up to the feature
+  - Clear dependencies and logical sequence
+
+### Task Management Guidelines
+
+- **Use project-manager-backlog agent** for creating structured task breakdowns
+- **Parent tasks** define scope boundaries and prevent scope creep
+- **Sub-tasks** handle granular implementation details
+- **Progress tracking** at both feature and implementation levels
+- **Clear acceptance criteria** for objective success measurement
+
+### Benefits of Hierarchical Structure
+
+- Clear communication at appropriate levels (business vs technical)
+- Better dependency management between features
+- Improved progress visibility for stakeholders
+- Consistent project organization across all features
